@@ -1,7 +1,10 @@
 # Source report 01 — Open-weight coder models 0.5B–9B for pytest generation
 
 Research agent report (Claude Sonnet), 2026-09-06. Unedited except for this header.
-Claims marked unverified by the agent remain unverified. The agent's ranking
+Claims marked unverified by the agent remain unverified.
+**Known error:** the ~43.3% / ~50.0% figures for Qwen2.5-Coder-1.5B-Instruct
+are wrong; Table 16 of the technical report gives 70.7 HumanEval / 66.5
+HumanEval+ / 69.2 MBPP / 59.4 MBPP+. See the synthesis README. The agent's ranking
 optimises accuracy-per-size; the synthesis document reweights for headroom
 over prompting, which is what this project measures.
 
