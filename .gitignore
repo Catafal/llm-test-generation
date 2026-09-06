@@ -1,0 +1,28 @@
+# Internal working notes: plans, decision log, session records. Never committed.
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment (uv-managed)
+.venv/
+
+# Environment — never commit real secrets
+.env
+
+# Local artifacts — datasets, model checkpoints, raw eval runs (large, regenerable)
+.cache/
+.artifacts/
+data/raw/
+models/
+checkpoints/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
