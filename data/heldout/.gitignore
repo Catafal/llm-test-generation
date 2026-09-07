@@ -1,4 +1,6 @@
 *
 !.gitignore
 !DECONTAMINATION.md
+!NOTICE.md
+!pool.jsonl
 !manifest.json

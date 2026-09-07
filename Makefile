@@ -19,5 +19,8 @@ pilot-survivors:  ## same, listing surviving mutants per case (for equivalence l
 baselines:        ## zero-shot + few-shot for all pilot models, writes runs/<id>/manifest.json
 	@echo "not implemented yet (weekend 1, T7)"; exit 1
 
+harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
+	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)
+
 eval:             ## score a run against the held-out pool
 	@echo "not implemented yet (weekend 1, T7)"; exit 1
