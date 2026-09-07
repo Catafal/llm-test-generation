@@ -2,6 +2,8 @@
 
     uv run python -m testgen.baselines --pool pilot                 # 10 pilot cases
     uv run python -m testgen.baselines --pool heldout --models 9b   # held-out pool, one model
+    uv run python -m testgen.baselines --pool dev --limit 60 --models 4b-bf16 \
+        --conditions zero --adapter models/adapters/<run>          # fine-tune, dev slice (FT12)
 
 For each model x condition (zero-shot, few-shot) the script generates one
 suite per function (batched, greedy, thinking off), truncates to the test
@@ -124,23 +126,30 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--pool", choices=["pilot", "test", "dev"], default="pilot")
     ap.add_argument("--models", default="9b,4b,coder7b")
     ap.add_argument("--conditions", default="zero,few")
+    ap.add_argument("--limit", type=int, default=0, help="first N functions of the pool only")
+    ap.add_argument("--adapter", default="", help="LoRA adapter dir applied to every model")
+    ap.add_argument("--tag", default="", help="run-name suffix, e.g. the checkpoint id")
     args = ap.parse_args(argv)
 
     from testgen.generate.mlx_backend import Backend
 
     pool = load_pool(args.pool)
+    if args.limit:
+        pool = pool[: args.limit]  # pool order is fixed by the committed artifact
     shots = few_shots()
+    name = f"baselines-{args.pool}" + (f"-{args.tag}" if args.tag else "")
     run_dir = manifest.new_run(
-        f"baselines-{args.pool}",
+        name,
         pool=args.pool,
         n_functions=len(pool),
         models=[MODELS[m] for m in args.models.split(",")],
         conditions=args.conditions.split(","),
         few_shot_cases=list(SHOT_CASES),
+        adapter=args.adapter or None,
     )
     table: dict[str, dict] = {}
     for key in args.models.split(","):
-        backend = Backend(MODELS[key])
+        backend = Backend(MODELS[key], adapter_path=args.adapter or None)
         print(f"model {MODELS[key]}", flush=True)
         for cond in args.conditions.split(","):
             fs = shots if cond == "few" else None

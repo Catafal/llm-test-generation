@@ -27,9 +27,11 @@ class Generation:
 
 
 class Backend:
-    def __init__(self, model_id: str) -> None:
+    def __init__(self, model_id: str, adapter_path: str | None = None) -> None:
+        """``adapter_path``: a LoRA adapter directory (mlx-lm format) applied on load."""
         self.model_id = model_id
-        self.model, self.tokenizer = mlx_lm.load(model_id)
+        self.adapter_path = adapter_path
+        self.model, self.tokenizer = mlx_lm.load(model_id, adapter_path=adapter_path)
 
     def _encode(self, messages: list[dict[str, str]]) -> list[int]:
         kwargs = {"add_generation_prompt": True, "tokenize": True}
