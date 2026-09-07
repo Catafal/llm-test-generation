@@ -117,6 +117,19 @@ def introducing_commits(repo_dir: Path) -> dict[str, tuple[str, str]]:
     return first
 
 
+def is_test_code(rel_path: str, function_name: str = "") -> bool:
+    """Test files and test functions are not evaluation material (they *are* suites)."""
+    parts = Path(rel_path.lower()).parts
+    name = parts[-1] if parts else ""
+    return (
+        any(p in SKIP_PATH_PARTS for p in parts)
+        or name.startswith("test_")
+        or name.endswith("_test.py")
+        or name == "conftest.py"
+        or function_name.startswith("test_")
+    )
+
+
 def _english(docstring: str) -> bool:
     return sum(ch.isascii() for ch in docstring) / max(1, len(docstring)) >= MIN_ASCII_RATIO
 
@@ -147,10 +160,7 @@ def harvest_repo(repo: dict, floor: date, seen: set[str]) -> list[dict]:
         if len(found) >= PER_REPO_CAP:
             break
         rel = path.relative_to(repo_dir).as_posix()
-        if (
-            any(part in SKIP_PATH_PARTS for part in Path(rel.lower()).parts)
-            or path.stat().st_size > 200_000
-        ):
+        if is_test_code(rel) or path.stat().st_size > 200_000:
             continue
         intro = intro_by_path.get(rel)
         if intro is None or date.fromisoformat(intro[1][:10]) < floor:
@@ -164,6 +174,8 @@ def harvest_repo(repo: dict, floor: date, seen: set[str]) -> list[dict]:
             if len(found) >= PER_REPO_CAP:
                 break
             if cand.end_lineno - cand.lineno + 1 > MAX_LINES or not _english(cand.docstring):
+                continue
+            if is_test_code(rel, cand.name):
                 continue
             fingerprint = hashlib.sha256(cand.source.encode()).hexdigest()
             if fingerprint in seen:

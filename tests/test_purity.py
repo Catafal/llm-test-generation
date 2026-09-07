@@ -77,3 +77,14 @@ def test_extracted_source_carries_only_needed_imports_and_runs():
 
 def test_syntax_error_module_is_rejected_whole():
     assert extract_candidates("def f(:\n") == ([], {"<module>": "syntax error"})
+
+
+def test_is_test_code_catches_files_and_functions():
+    from testgen.data.harvest import is_test_code
+
+    assert is_test_code("evals/deterministic/test_experimental_toggle.py")
+    assert is_test_code("pkg/utils_test.py")
+    assert is_test_code("pkg/tests/helpers.py")
+    assert is_test_code("pkg/core.py", "test_something")
+    assert not is_test_code("pkg/core.py", "compute")
+    assert not is_test_code("pkg/attest.py", "attest")

@@ -18,6 +18,13 @@ packages = ["testgen"]
 package = true
 
 [dependency-groups]
+# Layer-2 decontamination only; heavy (torch). `uv sync --group decontam`.
+decontam = [
+    "sentence-transformers>=3.0,<5",
+    "transformers>=4.45,<5",  # jina-v2-code remote code breaks on transformers 5
+    "torch>=2.4",
+    "einops>=0.8",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",

@@ -1,0 +1,19 @@
+{
+ "floor": "2026-06-01",
+ "candidates": 151,
+ "removed_vs_mbpp": 0,
+ "merged_duplicates": 7,
+ "kept": 144,
+ "families": 22,
+ "repos": 22,
+ "mbpp_url": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/mbpp.jsonl",
+ "mbpp_sha256": "ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f",
+ "thresholds": {
+  "ngram_n": 10,
+  "ast_jaccard": 0.85,
+  "cosine_flag": 0.9,
+  "cosine_review": 0.8
+ },
+ "embedding_model": "jinaai/jina-embeddings-v2-base-code",
+ "generated": "2026-09-07"
+}
