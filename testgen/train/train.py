@@ -16,7 +16,12 @@ adapter never need a gradient, so they can keep the kernel. This wrapper:
    ``training=False`` (the only effect: ``use_kernel=True``; the layer has no
    dropout);
 3. writes a run manifest next to the adapter (config sha, dataset sha, base
-   model, git commit) per FT3.
+   model, git commit) per FT3;
+4. disables mx.compile. mlx-lm compiles the whole training step; at batch 1
+   every distinct sequence length is a new shape-specialised compilation of a
+   graph holding the per-token DeltaNet loop, and the cached compilations
+   accumulate Metal buffers until ``[metal::malloc] Resource limit (499000)
+   exceeded`` (mlx-lm#1185; died at micro-iterations 225 and 95 here).
 """
 
 import argparse
@@ -27,6 +32,7 @@ import sys
 import types
 from pathlib import Path
 
+import mlx.core as mx
 import yaml
 from mlx_lm import lora
 from mlx_lm.models.qwen3_5 import GatedDeltaNet
@@ -95,6 +101,7 @@ def load_args(argv: list[str]) -> types.SimpleNamespace:
 def main(argv: list[str]) -> int:
     args = load_args(argv)
     write_manifest(args)
+    mx.disable_compile()  # see module docstring, point 4
 
     def train_model(a, model, train_set, valid_set, cb=None):
         # mlx-lm inserts adapters inside; swap frozen DeltaNet layers first, since
