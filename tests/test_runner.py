@@ -89,3 +89,8 @@ def test_run_many_matches_sequential_and_keeps_keys():
     assert not results["ok"].any_failed
     assert results["bad"].any_failed
     assert results["hang"].status == "timeout"
+
+
+def test_empty_suite_is_ok_with_no_tests_not_a_crash():
+    r = run_suite("from solution import add\n", IMPL)
+    assert r.status == "ok" and r.tests == []

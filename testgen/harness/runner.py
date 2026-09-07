@@ -30,7 +30,9 @@ SUITE_FILE = "test_solution.py"
 REPORT_FILE = "report.xml"
 
 # pytest exit codes we care about (https://docs.pytest.org/en/stable/reference/exit-codes.html)
-_EXIT_OK, _EXIT_TESTS_FAILED = 0, 1
+# 5 = no tests collected: a normal run of an empty suite, not a crash; the
+# scorer turns it into invalid_reason="no_tests".
+_EXIT_OK, _EXIT_TESTS_FAILED, _EXIT_NO_TESTS = 0, 1, 5
 
 
 @dataclass
@@ -146,6 +148,8 @@ def run_suite(
         tests = _parse_junit(workdir / REPORT_FILE)
         # Exit code 0/1 with test cases = normal run. Anything else, or no
         # test cases at all, means pytest never got to run the suite.
+        if proc.returncode == _EXIT_NO_TESTS:
+            return RunResult("ok", [], use_sandbox, duration, "")
         crashed = proc.returncode not in (_EXIT_OK, _EXIT_TESTS_FAILED) or not tests
         status = "crash" if crashed else "ok"
         tail = "\n".join((proc.stderr or proc.stdout).splitlines()[-15:])
