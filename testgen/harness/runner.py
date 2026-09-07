@@ -51,6 +51,7 @@ class RunResult:
     sandboxed: bool = False
     duration_s: float = 0.0
     stderr_tail: str = ""  # last lines only; enough to diagnose a crash
+    artifacts: dict[str, str] = field(default_factory=dict)  # files collected from the workdir
 
     @property
     def any_failed(self) -> bool:
@@ -114,12 +115,15 @@ def run_suite(
     impl_src: str,
     timeout_s: int = TEST_TIMEOUT_SECONDS,
     sandbox: bool | None = None,
+    collect: tuple[str, ...] = (),
 ) -> RunResult:
     """Execute ``suite_src`` against ``impl_src`` and return per-test outcomes.
 
     ``sandbox=None`` means "use it if available". A timeout returns
     ``status="timeout"`` with no tests; a collection/syntax failure returns
     ``status="crash"``. The scorer decides what those mean (decision 5).
+    ``collect`` names files the suite may write into its workdir (e.g. the
+    oracle's recorded values, D023); their text is returned in ``artifacts``.
     """
     use_sandbox = sandbox_available() if sandbox is None else sandbox
     with tempfile.TemporaryDirectory(prefix="testgen-") as tmp:
@@ -153,7 +157,10 @@ def run_suite(
         crashed = proc.returncode not in (_EXIT_OK, _EXIT_TESTS_FAILED) or not tests
         status = "crash" if crashed else "ok"
         tail = "\n".join((proc.stderr or proc.stdout).splitlines()[-15:])
-        return RunResult(status, tests, use_sandbox, duration, tail)
+        artifacts = {
+            name: (workdir / name).read_text() for name in collect if (workdir / name).exists()
+        }
+        return RunResult(status, tests, use_sandbox, duration, tail, artifacts)
 
 
 def run_many(

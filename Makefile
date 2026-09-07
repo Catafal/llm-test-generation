@@ -25,6 +25,9 @@ pilot-survivors:  ## same, listing surviving mutants per case (for equivalence l
 split:            ## family-wise test/dev split of data/heldout/pool.jsonl (D020)
 	uv run python -m testgen.data.split
 
+derisk:           ## D023 de-risk: 4B self-samples, rejection vs oracle-fill on 40 dev fns
+	uv run --group models python -m testgen.train.derisk --n $(or $(N),40) --k $(or $(K),4) --batch $(or $(BATCH),16)
+
 baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b
 	uv run python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b)
 

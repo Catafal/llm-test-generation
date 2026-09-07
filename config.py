@@ -32,3 +32,7 @@ HARNESS_WORKERS = int(os.getenv("HARNESS_WORKERS", str(max(1, (os.cpu_count() or
 # invalidates comparability across runs; the manifest records them.
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "2048"))  # D019: 1024 truncated the 9B
 MAX_TESTS_PER_SUITE = int(os.getenv("MAX_TESTS_PER_SUITE", "8"))
+
+# D023: an oracle-filled expected value is only written back when its repr is
+# this short. Longer values are ones the model has no path to compute by hand.
+MAX_ORACLE_REPR = int(os.getenv("MAX_ORACLE_REPR", "40"))
