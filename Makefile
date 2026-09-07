@@ -34,7 +34,10 @@ propose:          ## T2: 4B self-samples K per training fn; K=8 BATCH=16 [RESUME
 filter:           ## T3: oracle-fill + execution filter -> data/train/sft/; RUN=runs/propose-*
 	uv run --group models python -m testgen.train.filter --run $(RUN)
 
-train:            ## T5: segmented LoRA (mlx-lm#1185) -> models/adapters/$(RUN); RUN=lora-4b-<tag> [START=k]
+train-single:     ## T5: one-process LoRA (compile disabled) -> models/adapters/$(RUN)
+	uv run --group models python -m testgen.train.train -c configs/lora-4b.yaml --adapter-path models/adapters/$(or $(RUN),lora-4b)
+
+train:            ## T5 fallback: segmented LoRA (mlx-lm#1185) -> models/adapters/$(RUN); RUN=lora-4b-<tag> [START=k]
 	uv run --group models python -m testgen.train.segments --run models/adapters/$(or $(RUN),lora-4b) $(if $(START),--start $(START),)
 
 devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run>
