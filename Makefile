@@ -34,6 +34,12 @@ baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|t
 harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
 	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)
 
+harvest-train:    ## D022 overflow harvest into data/train/candidates.jsonl; REPOS=400
+	uv run python -m testgen.data.harvest --overflow --repos $(or $(REPOS),400)
+
+decontaminate-train: ## D022: data/train/pool.jsonl decontaminated vs both held-out splits
+	uv run --group dev --group decontam python -m testgen.data.decontaminate --dir data/train --against heldout
+
 decontaminate:    ## build data/heldout/pool.jsonl + report (needs `make sync-decontam` first)
 	uv run --group dev --group decontam python -m testgen.data.decontaminate
 

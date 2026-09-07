@@ -1,6 +1,7 @@
 """Harvest post-cutoff pure functions from GitHub (D017).
 
     uv run python -m testgen.data.harvest --repos 50 --floor 2026-06-01
+    uv run python -m testgen.data.harvest --repos 400 --overflow   # training pool (D022)
 
 For each permissively-licensed Python repository created after the floor:
 clone with history but without blobs, walk non-test ``.py`` files, keep files
@@ -8,6 +9,11 @@ whose *introducing commit* is dated after the floor (repo creation is not
 proof of new code), extract pure candidates, and count live mutants under
 the eval profile. Candidates with >= MIN_LIVE_MUTANTS are appended to
 ``data/heldout/candidates.jsonl`` with full provenance.
+
+``--overflow`` (D022) harvests the *training* pool: same query and filters,
+but every repository already scanned for the held-out pool and every owner
+present in ``data/heldout/pool.jsonl`` is skipped, and rows go to
+``data/train/candidates.jsonl``.
 
 Uses ``gh`` for the search API (already authenticated) and ``git`` for
 clones. Clones live under ``.cache/harvest/`` and are gitignored.
@@ -30,6 +36,8 @@ from testgen.mutate.operators import generate_mutants
 
 CACHE = ROOT / ".cache" / "harvest"
 OUT = ROOT / "data" / "heldout" / "candidates.jsonl"
+TRAIN_OUT = ROOT / "data" / "train" / "candidates.jsonl"
+HELDOUT_POOL = ROOT / "data" / "heldout" / "pool.jsonl"
 LICENCES = ("mit", "apache-2.0", "bsd-3-clause", "bsd-2-clause")
 MIN_LIVE_MUTANTS = 8
 MAX_LINES = 60  # longer functions dominate eval cost and distort the fixed generation budget
@@ -62,8 +70,11 @@ def _gh(query: str, page: int) -> list[dict]:
     return [json.loads(line) for line in out.splitlines() if line.strip()]
 
 
-def search_repos(floor: date, limit: int) -> list[dict]:
-    """Permissively licensed, non-fork, non-archived Python repos created on/after the floor."""
+def search_repos(floor: date, limit: int, skip: set[str] = frozenset()) -> list[dict]:
+    """Permissively licensed, non-fork, non-archived Python repos created on/after the floor.
+
+    ``skip`` holds repository full names and owner logins to leave out.
+    """
     repos: list[dict] = []
     for lic in LICENCES:
         q = f"language:Python created:>={floor.isoformat()} license:{lic} fork:false archived:false"
@@ -72,7 +83,11 @@ def search_repos(floor: date, limit: int) -> list[dict]:
             batch = _gh(q, page)
             if not batch:
                 break
-            repos.extend(batch)
+            repos.extend(
+                r
+                for r in batch
+                if r["full_name"] not in skip and r["full_name"].split("/")[0] not in skip
+            )
             page += 1
         if len(repos) >= limit:
             break
@@ -204,22 +219,50 @@ def harvest_repo(repo: dict, floor: date, seen: set[str]) -> list[dict]:
     return found
 
 
+def heldout_exclusions() -> set[str]:
+    """Repos already scanned for held-out (cloned under CACHE) plus every held-out owner."""
+    scanned = {d.name.replace("__", "/", 1) for d in CACHE.iterdir() if d.is_dir()}
+    owners = set()
+    if HELDOUT_POOL.exists():
+        for ln in HELDOUT_POOL.read_text().splitlines():
+            if ln.strip():
+                owners.add(json.loads(ln)["repo"].split("/")[3])
+    return scanned | owners
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--repos", type=int, default=50)
     ap.add_argument("--floor", type=date.fromisoformat, default=date(2026, 6, 1))
+    ap.add_argument(
+        "--overflow", action="store_true", help="training pool: skip held-out repos/owners"
+    )
     args = ap.parse_args(argv)
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
+    out_path = TRAIN_OUT if args.overflow else OUT
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     seen: set[str] = set()
-    if OUT.exists():
+    if out_path.exists():
         seen = {
-            json.loads(ln)["source_sha256"] for ln in OUT.read_text().splitlines() if ln.strip()
+            json.loads(ln)["source_sha256"]
+            for ln in out_path.read_text().splitlines()
+            if ln.strip()
         }
-    repos = search_repos(args.floor, args.repos)
-    print(f"{len(repos)} repos to scan (floor {args.floor}, already have {len(seen)} candidates)")
+    skip = heldout_exclusions() if args.overflow else set()
+    if args.overflow and HELDOUT_POOL.exists():  # identical bodies never reach the training pool
+        seen |= {
+            json.loads(ln)["source_sha256"]
+            for ln in HELDOUT_POOL.read_text().splitlines()
+            if ln.strip()
+        }
+    repos = search_repos(args.floor, args.repos, skip)
+    print(
+        f"{len(repos)} repos to scan (floor {args.floor}, skipping {len(skip)} held-out "
+        f"repos/owners, "
+        f"already have {len(seen)} fingerprints)"
+    )
     total = 0
-    with OUT.open("a") as out:
+    with out_path.open("a") as out:
         for i, repo in enumerate(repos, 1):
             found = harvest_repo(repo, args.floor, seen)
             for row in found:

@@ -22,7 +22,7 @@ def fake_embed(texts):
 
 
 def test_verbatim_copy_is_flagged_by_every_layer():
-    held = [{"id": "gh:copy", "repo": "r1", "source": TRAIN[0]["source"]}]
+    held = [{"id": "gh:copy", "repo": "https://github.com/o1/r1", "source": TRAIN[0]["source"]}]
     reasons = _flags_against(held, TRAIN, fake_embed)["gh:copy"]
     kinds = {r.split()[0] for r in reasons}
     assert {"ast-exact", "ngram10", "ast-jaccard", "cosine"} <= kinds
@@ -30,7 +30,7 @@ def test_verbatim_copy_is_flagged_by_every_layer():
 
 def test_renamed_copy_is_flagged_structurally_not_lexically():
     renamed = TRAIN[0]["source"].replace("min_cost", "cheapest").replace("tc", "table")
-    held = [{"id": "gh:renamed", "repo": "r1", "source": renamed}]
+    held = [{"id": "gh:renamed", "repo": "https://github.com/o1/r1", "source": renamed}]
     reasons = _flags_against(held, TRAIN, None)["gh:renamed"]
     kinds = {r.split()[0] for r in reasons}
     assert "ast-exact" in kinds  # n-gram may also fire: two renames leave long shared runs
@@ -38,17 +38,29 @@ def test_renamed_copy_is_flagged_structurally_not_lexically():
 
 def test_unrelated_function_is_clean():
     held = [
-        {"id": "gh:new", "repo": "r2", "source": "def f(a, b):\n    return a if a > b else b\n"}
+        {
+            "id": "gh:new",
+            "repo": "https://github.com/o2/r2",
+            "source": "def f(a, b):\n    return a if a > b else b\n",
+        }
     ]
     assert _flags_against(held, TRAIN, None).get("gh:new", []) == []
 
 
-def test_families_merge_same_repo_and_flagged_pairs():
+def test_families_merge_same_owner_and_flagged_pairs():
     held = [
-        {"id": "a", "repo": "r1", "source": "def f(x):\n    return x + 1\n"},
-        {"id": "b", "repo": "r1", "source": "def g(y):\n    return y * 2\n"},
-        {"id": "c", "repo": "r2", "source": "def h(z):\n    return z + 1\n"},  # ast-equal to a
-        {"id": "d", "repo": "r3", "source": "def k(q):\n    return [q] * 3\n"},
+        {"id": "a", "repo": "https://github.com/o1/r1", "source": "def f(x):\n    return x + 1\n"},
+        {"id": "b", "repo": "https://github.com/o1/r1", "source": "def g(y):\n    return y * 2\n"},
+        {
+            "id": "c",
+            "repo": "https://github.com/o2/r2",
+            "source": "def h(z):\n    return z + 1\n",
+        },  # ast-equal to a
+        {
+            "id": "d",
+            "repo": "https://github.com/o3/r3",
+            "source": "def k(q):\n    return [q] * 3\n",
+        },
     ]
     fam, log = _families(held, None)
     assert fam["a"] == fam["b"] == fam["c"] and fam["d"] != fam["a"]

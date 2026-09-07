@@ -2,12 +2,17 @@
 
     uv run python -m testgen.data.decontaminate            # real embeddings (--group decontam)
     uv run python -m testgen.data.decontaminate --no-embed # layers 1 and 3 only
+    uv run python -m testgen.data.decontaminate --dir data/train --against heldout  # D022
 
-Reads  data/heldout/candidates.jsonl
-Writes data/heldout/pool.jsonl           kept functions + family id
-       data/heldout/DECONTAMINATION.md   per-layer thresholds, counts, borderline pairs
-       data/heldout/NOTICE.md            every source repo and licence
-       data/heldout/manifest.json        floor, counts, thresholds, MBPP sha, model
+Reads  <dir>/candidates.jsonl
+Writes <dir>/pool.jsonl           kept functions + family id
+       <dir>/DECONTAMINATION.md   per-layer thresholds, counts, borderline pairs
+       <dir>/NOTICE.md            every source repo and licence
+       <dir>/manifest.json        floor, counts, thresholds, reference sha, model
+
+``--against mbpp`` (default, held-out pool) or ``--against heldout`` (training
+pool, D022: flagged against *either* split of data/heldout/pool.jsonl).
+Families group by repository *owner*, not just repository (D022).
 
 Removal rules: a candidate flagged against *any* MBPP function by any layer is
 dropped. Among candidates, near-duplicates are merged into one family and only
@@ -39,7 +44,6 @@ from testgen.data.similarity import (
 )
 
 HELDOUT = ROOT / "data" / "heldout"
-CANDIDATES = HELDOUT / "candidates.jsonl"
 
 
 class UnionFind:
@@ -84,14 +88,21 @@ def _flags_against(
     return reasons
 
 
+def _owner(repo_url: str) -> str:
+    """``https://github.com/<owner>/<repo>`` -> owner; anything shorter is its own owner."""
+    parts = repo_url.rstrip("/").split("/")
+    return parts[3] if len(parts) > 4 else repo_url
+
+
 def _families(held: list[dict], embed: Embedder | None) -> tuple[dict[str, str], list[str]]:
-    """Union-find: same repo, or any layer flags the pair. Returns (id -> family, merge log)."""
+    """Union-find: same owner, or any layer flags the pair. Returns (id -> family, merge log)."""
     uf, log = UnionFind([h["id"] for h in held]), []
-    by_repo: dict[str, str] = {}
+    by_owner: dict[str, str] = {}
     for h in held:
-        if h["repo"] in by_repo:
-            uf.union(h["id"], by_repo[h["repo"]])
-        by_repo.setdefault(h["repo"], h["id"])
+        owner = _owner(h["repo"])
+        if owner in by_owner:
+            uf.union(h["id"], by_owner[owner])
+        by_owner.setdefault(owner, h["id"])
     ng = [ngrams(h["source"]) for h in held]
     sh = [ast_shingles(h["source"]) for h in held]
     hs = [ast_hash(h["source"]) for h in held]
@@ -122,22 +133,22 @@ def _write_report(
     hard = {k: [r for r in v if not r.startswith("REVIEW")] for k, v in flagged.items()}
     review = {k: [r for r in v if r.startswith("REVIEW")] for k, v in flagged.items()}
     lines = [
-        "# Decontamination Report — held-out pool vs MBPP",
+        f"# Decontamination Report — {stats['dir']} vs {stats['against']}",
         "",
         f"Generated {date.today().isoformat()}. Floor date {stats['floor']}. "
         f"Candidates {stats['candidates']}, kept {stats['kept']}, families {stats['families']}.",
         "",
         "## Layers and thresholds",
         "",
-        f"- n-gram: word-level, n={NGRAM_N}; any shared n-gram with an MBPP function flags.",
+        f"- n-gram: word-level, n={NGRAM_N}; any shared n-gram with a reference function flags.",
         f"- AST: identifiers→slots, docstrings dropped, constants→type; exact hash flags; "
         f"k=5 node shingles Jaccard ≥ {AST_JACCARD_FLAG} flags.",
         f"- embedding: {stats['embedding_model'] or 'not run'}; cosine ≥ {COSINE_FLAG} flags, "
         f"{COSINE_REVIEW}–{COSINE_FLAG} listed for human review.",
-        "- family: same source repo, plus union-find over every flagged candidate pair; "
+        "- family: same repository owner, plus union-find over every flagged candidate pair; "
         "one function kept per family cluster of near-duplicates.",
         "",
-        "## Removed against MBPP",
+        f"## Removed against {stats['against']}",
         "",
         f"{sum(1 for v in hard.values() if v)} candidates removed.",
         "",
@@ -166,21 +177,33 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-embed", action="store_true", help="skip layer 2")
     ap.add_argument("--floor", default="2026-06-01")
+    ap.add_argument("--dir", default=str(HELDOUT), help="pool directory holding candidates.jsonl")
+    ap.add_argument("--against", choices=["mbpp", "heldout"], default="mbpp")
     args = ap.parse_args(argv)
+    out_dir = Path(args.dir)
 
-    held = [json.loads(ln) for ln in CANDIDATES.read_text().splitlines() if ln.strip()]
+    held = [
+        json.loads(ln)
+        for ln in (out_dir / "candidates.jsonl").read_text().splitlines()
+        if ln.strip()
+    ]
     n_raw = len(held)
     held = [h for h in held if not is_test_code(h["path"], h["function"])]  # defensive re-filter
     print(f"dropped {n_raw - len(held)} test-code candidates")
-    mbpp_path, mbpp_sha = mbpp.fetch()
-    train = mbpp.load(mbpp_path)
+    if args.against == "mbpp":
+        ref_path, ref_sha = mbpp.fetch()
+        train = mbpp.load(ref_path)
+    else:  # both held-out splits: the training pool must be disjoint from test *and* dev
+        ref_path = HELDOUT / "pool.jsonl"
+        train = [json.loads(ln) for ln in ref_path.read_text().splitlines() if ln.strip()]
+        ref_sha = __import__("hashlib").sha256(ref_path.read_bytes()).hexdigest()
     embed = (
         None
         if args.no_embed
         else __import__("testgen.data.similarity", fromlist=["jina_embedder"]).jina_embedder()
     )
     print(
-        f"{len(held)} candidates vs {len(train)} MBPP functions; "
+        f"{len(held)} candidates vs {len(train)} {args.against} functions; "
         f"embeddings {'off' if embed is None else 'on'}"
     )
 
@@ -203,23 +226,27 @@ def main(argv: list[str]) -> int:
         dup_cluster[h["id"]] = root
         kept.append({**h, "family": families[h["id"]]})
 
-    HELDOUT.mkdir(exist_ok=True)
-    (HELDOUT / "pool.jsonl").write_text("".join(json.dumps(r) + "\n" for r in kept))
+    out_dir.mkdir(exist_ok=True)
+    (out_dir / "pool.jsonl").write_text("".join(json.dumps(r) + "\n" for r in kept))
     repos = sorted({(r["repo"], r["licence"]) for r in kept})
-    (HELDOUT / "NOTICE.md").write_text(
+    (out_dir / "NOTICE.md").write_text(
         "# Sources\n\nFunction bodies in pool.jsonl are reproduced verbatim under their "
         "original licences.\n\n" + "".join(f"- {u} — {lic}\n" for u, lic in repos)
     )
     stats = {
+        "dir": out_dir.relative_to(ROOT).as_posix(),
+        "against": args.against,
         "floor": args.floor,
         "candidates": len(held),
-        "removed_vs_mbpp": len(held) - len(clean),
+        "removed_vs_reference": len(held) - len(clean),
         "merged_duplicates": len(clean) - len(kept),
         "kept": len(kept),
         "families": len(set(r["family"] for r in kept)),
         "repos": len(repos),
-        "mbpp_url": mbpp.MBPP_URL,
-        "mbpp_sha256": mbpp_sha,
+        "reference": mbpp.MBPP_URL
+        if args.against == "mbpp"
+        else ref_path.relative_to(ROOT).as_posix(),
+        "reference_sha256": ref_sha,
         "thresholds": {
             "ngram_n": NGRAM_N,
             "ast_jaccard": AST_JACCARD_FLAG,
@@ -229,8 +256,8 @@ def main(argv: list[str]) -> int:
         "embedding_model": None if embed is None else "jinaai/jina-embeddings-v2-base-code",
         "generated": date.today().isoformat(),
     }
-    (HELDOUT / "manifest.json").write_text(json.dumps(stats, indent=1))
-    _write_report(HELDOUT / "DECONTAMINATION.md", stats, flagged, merges)
+    (out_dir / "manifest.json").write_text(json.dumps(stats, indent=1))
+    _write_report(out_dir / "DECONTAMINATION.md", stats, flagged, merges)
     print(
         json.dumps(
             {k: v for k, v in stats.items() if k not in ("thresholds", "mbpp_url")}, indent=1
