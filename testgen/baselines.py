@@ -36,7 +36,10 @@ BATCH = 8
 
 
 def load_pool(name: str) -> list[dict]:
-    """Rows: {id, source, equivalent}. Pilot rows carry hand-labelled equivalents."""
+    """Rows: {id, source, equivalent}. Pilot rows carry hand-labelled equivalents.
+
+    ``test`` / ``dev`` select the D020 split of data/heldout/pool.jsonl.
+    """
     if name == "pilot":
         return [
             {"id": c.name, "source": c.source, "equivalent": set(c.equivalent)}
@@ -44,7 +47,11 @@ def load_pool(name: str) -> list[dict]:
         ]
     path = ROOT / "data" / "heldout" / "pool.jsonl"
     rows = [json.loads(ln) for ln in path.read_text().splitlines() if ln.strip()]
-    return [{"id": r["id"], "source": r["source"], "equivalent": set()} for r in rows]
+    return [
+        {"id": r["id"], "source": r["source"], "equivalent": set()}
+        for r in rows
+        if r["split"] == name
+    ]
 
 
 def few_shots() -> list[tuple[str, str]]:
@@ -114,7 +121,7 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pool", choices=["pilot", "heldout"], default="pilot")
+    ap.add_argument("--pool", choices=["pilot", "test", "dev"], default="pilot")
     ap.add_argument("--models", default="9b,4b,coder7b")
     ap.add_argument("--conditions", default="zero,few")
     args = ap.parse_args(argv)
