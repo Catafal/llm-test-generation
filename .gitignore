@@ -18,7 +18,9 @@ build/
 .cache/
 .artifacts/
 data/raw/
-models/
+models/hf/
+models/adapters/**/*.safetensors
+models/adapters/**/ckpt-*/
 checkpoints/
 
 # Tooling caches

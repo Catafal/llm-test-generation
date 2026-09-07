@@ -34,6 +34,12 @@ propose:          ## T2: 4B self-samples K per training fn; K=8 BATCH=16 [RESUME
 filter:           ## T3: oracle-fill + execution filter -> data/train/sft/; RUN=runs/propose-*
 	uv run --group models python -m testgen.train.filter --run $(RUN)
 
+train:            ## T5: LoRA on data/train/sft -> models/adapters/$(RUN); RUN=lora-4b-<tag>
+	uv run --group models python -m testgen.train.train -c configs/lora-4b.yaml --adapter-path models/adapters/$(or $(RUN),lora-4b)
+
+devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run>
+	uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60)
+
 baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b [LIMIT= ADAPTER= TAG= CONDITIONS=]
 	uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),)
 
@@ -61,5 +67,5 @@ models-rm:        ## delete models: KEYS="4b" or ALL=1 to free everything
 clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the pool is frozen)
 	rm -rf .cache/harvest
 
-eval:             ## score a run against the held-out pool
-	@echo "not implemented yet (weekend 1, T7)"; exit 1
+eval:             ## T6: fine-tuned 4B zero-shot on the test split; ADAPTER=models/adapters/<run>/ckpt-NNNNNNN
+	uv run --group models python -m testgen.baselines --pool test --models 4b-bf16 --conditions zero --adapter $(ADAPTER) --tag finetune
