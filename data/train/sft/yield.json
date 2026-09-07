@@ -1,0 +1,36 @@
+{
+ "propose_run": "propose-20260907T152802Z",
+ "yield": {
+  "candidates": 4400,
+  "parsed": 4345,
+  "valid_before_oracle": 1243,
+  "valid_after_oracle": 2157,
+  "valid_and_killing": 2151,
+  "valid_killing_fits": 1859,
+  "functions": 550,
+  "functions_kept": 412
+ },
+ "oracle": {
+  "sites": 33546,
+  "recorded": 28544,
+  "replaced": 4149,
+  "already_correct": 23634,
+  "too_long": 727,
+  "unliteral": 34
+ },
+ "kept_assertion_styles": {
+  "literal_eq": 2986,
+  "approx": 0,
+  "relational": 31,
+  "membership": 803,
+  "expr_eq": 155,
+  "other": 64
+ },
+ "kept_mean_mutation_score": 0.8442041730710126,
+ "kept_mean_tests": 6.842233009708738,
+ "kept_mean_tokens": 710.2815533980582,
+ "max_train_tokens": 1024,
+ "train": 388,
+ "valid": 24,
+ "seed": 20260907
+}

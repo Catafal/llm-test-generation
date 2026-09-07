@@ -18,15 +18,16 @@ grad_accumulation_steps: 8                # effective batch 8 (FT8)
 learning_rate: 1.0e-4
 lr_schedule:
   name: cosine_decay
-  warmup: 20
-  arguments: [1.0e-4, 300, 1.0e-6]        # init, decay steps (~2 epochs of ~500 ex / 8), end
-iters: 300
+  warmup: 10
+  arguments: [1.0e-4, 150, 1.0e-6]        # init, decay steps, end
+iters: 150                                # 3 epochs of 388 examples at effective batch 8; the dev
+                                          # harness curve picks the checkpoint (FT12), not the epoch count
 max_seq_length: 1024                      # D024: 1536 OOMs on 48 GB; filter drops longer examples
 grad_checkpoint: true                     # 48 GB Mac: trade compute for activation memory
 steps_per_report: 10
-steps_per_eval: 50                        # val loss is logged; early stopping is by dev harness (FT12)
+steps_per_eval: 25                        # val loss is logged; early stopping is by dev harness (FT12)
 val_batches: -1
-save_every: 50                            # checkpoints for the dev-harness curve
+save_every: 15                            # 10 checkpoints for the dev-harness curve
 seed: 0
 adapter_path: models/adapters/lora-4b     # overridden per run
 lora_parameters:
