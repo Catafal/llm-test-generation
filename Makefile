@@ -11,7 +11,10 @@ test:             ## harness unit tests
 	uv run pytest -q
 
 pilot:            ## run the 10-case pilot: harness must rank strong > weak on every case
-	@echo "not implemented yet (weekend 1, T4)"; exit 1
+	uv run python -m testgen.pilot
+
+pilot-survivors:  ## same, listing surviving mutants per case (for equivalence labelling)
+	uv run python -m testgen.pilot --survivors
 
 baselines:        ## zero-shot + few-shot for all pilot models, writes runs/<id>/manifest.json
 	@echo "not implemented yet (weekend 1, T7)"; exit 1
