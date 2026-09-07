@@ -9,18 +9,25 @@ from dataclasses import asdict
 from pathlib import Path
 
 from testgen.mutate.equivalence import split_equivalent
-from testgen.mutate.operators import ALL_CATEGORIES, Mutant, generate_mutants
+from testgen.mutate.operators import Mutant, generate_mutants
+from testgen.mutate.profiles import EVAL_PROFILE_NAME, active_categories
 
-OPERATORS_VERSION = "2026-09-07.1"  # bump whenever operators.py changes behaviour
+OPERATORS_VERSION = "2026-09-07.2"  # bump whenever mutators.py/operators.py change behaviour
 
 
-def freeze(function_id: str, source: str, categories: tuple[str, ...] = ALL_CATEGORIES) -> dict:
+def freeze(
+    function_id: str,
+    source: str,
+    categories: tuple[str, ...] = active_categories(),
+    profile: str = EVAL_PROFILE_NAME,
+) -> dict:
     mutants = generate_mutants(source, categories)
     live, equivalent = split_equivalent(source, mutants)
     return {
         "function_id": function_id,
         "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
         "operators_version": OPERATORS_VERSION,
+        "profile": profile,
         "categories": list(categories),
         "mutants": [asdict(m) for m in mutants],
         "trivially_equivalent": sorted(equivalent),
