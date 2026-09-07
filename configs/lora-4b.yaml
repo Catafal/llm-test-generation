@@ -1,0 +1,49 @@
+# Weekend-2 LoRA config for Qwen3.5-4B (D021, FT3, FT7-FT10). Config-as-code:
+# every training run is `mlx_lm.lora -c configs/lora-4b.yaml` plus an
+# --adapter-path override, and the run manifest records this file's sha.
+#
+# lora_parameters.keys is verified against `named_modules()` in T4 (FT7): all
+# linear projections, including the Gated DeltaNet ones, not just attention.
+
+model: mlx-community/Qwen3.5-4B-bf16      # bf16, never QLoRA on Qwen3.5 (FT9)
+train: true
+data: data/train/sft                      # train.jsonl / valid.jsonl, chat format
+fine_tune_type: lora
+optimizer: adamw
+mask_prompt: true                         # completion-only loss (FT8)
+num_layers: -1                            # all layers
+batch_size: 2
+grad_accumulation_steps: 4                # effective batch 8 (FT8)
+learning_rate: 1.0e-4
+lr_schedule:
+  name: cosine_decay
+  warmup: 20
+  arguments: [1.0e-4, 300, 1.0e-6]        # init, decay steps (~2 epochs of ~500 ex / 8), end
+iters: 300
+max_seq_length: 2048
+grad_checkpoint: true                     # 48 GB Mac: trade compute for activation memory
+steps_per_report: 10
+steps_per_eval: 50                        # val loss is logged; early stopping is by dev harness (FT12)
+val_batches: -1
+save_every: 50                            # checkpoints for the dev-harness curve
+seed: 0
+adapter_path: models/adapters/lora-4b     # overridden per run
+lora_parameters:
+  # Verified on mlx-community/Qwen3.5-4B-bf16 (4.21 B params): 8 full-attention
+  # layers (self_attn.*), 24 Gated DeltaNet layers (linear_attn.*), MLP in all 32.
+  keys:
+    - self_attn.q_proj
+    - self_attn.k_proj
+    - self_attn.v_proj
+    - self_attn.o_proj
+    - linear_attn.in_proj_qkv
+    - linear_attn.in_proj_z
+    - linear_attn.in_proj_a
+    - linear_attn.in_proj_b
+    - linear_attn.out_proj
+    - mlp.gate_proj
+    - mlp.up_proj
+    - mlp.down_proj
+  rank: 16
+  scale: 32.0                             # alpha; mlx-lm calls it scale (FT8: alpha 32)
+  dropout: 0.05
