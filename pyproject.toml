@@ -1,0 +1,25 @@
+[project]
+name = "llm-test-generation"
+version = "0.1.0"
+description = "Fine-tune a small model to write unit tests that expose bugs, measured by mutation score against prompting baselines."
+requires-python = ">=3.12"
+dependencies = [
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/F: errors and pyflakes; I: import order; B: bugbear; UP: modern syntax
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
