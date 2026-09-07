@@ -26,10 +26,11 @@ from collections import Counter, defaultdict
 from dataclasses import asdict
 from pathlib import Path
 
-from config import MAX_TESTS_PER_SUITE, ROOT
+from config import MAX_TESTS_PER_SUITE, MAX_TRAIN_TOKENS, ROOT
 from testgen.generate.prompts import build_messages, enforce_test_budget, extract_suite
 from testgen.harness.runner import RunResult, run_many, run_suite
 from testgen.harness.score import mutant_killed
+from testgen.models import MODELS
 from testgen.mutate.equivalence import split_equivalent
 from testgen.mutate.operators import generate_mutants
 from testgen.mutate.profiles import training_categories
@@ -64,11 +65,18 @@ def score_candidate(text: str, source: str, live: list) -> dict:
     return rec
 
 
-def best_per_function(cands: list[dict]) -> dict | None:
-    keep = [c for c in cands if c.get("valid") and c["kills"] > 0]
+def best_per_function(cands: list[dict], max_tokens: int = MAX_TRAIN_TOKENS) -> dict | None:
+    """Valid, killing, and short enough to train on untruncated (D024)."""
+    keep = [c for c in cands if c.get("valid") and c["kills"] > 0 and c["n_tokens"] <= max_tokens]
     if not keep:
         return None
     return max(keep, key=lambda c: (c["mutation_score"], -c["n_tests"]))
+
+
+def token_length(tokenizer, chat: dict) -> int:
+    """Tokens the trainer will see for this example (chat template applied)."""
+    text = tokenizer.apply_chat_template(chat["messages"], tokenize=False)
+    return len(tokenizer(text).input_ids)
 
 
 def to_chat(source: str, suite: str) -> dict:
@@ -82,6 +90,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--seed", type=int, default=20260907)
     args = ap.parse_args(argv)
 
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(MODELS["4b-bf16"])
     pool = {r["id"]: r for r in load_pool()}
     raw = [
         json.loads(ln)
@@ -100,11 +111,17 @@ def main(argv: list[str]) -> int:
         live, _ = split_equivalent(source, generate_mutants(source, training_categories()))
         scored[fid] = [{**c, **score_candidate(c["text"], source, live)} for c in cands]
         for c in scored[fid]:
+            c["n_tokens"] = (
+                token_length(tokenizer, to_chat(source, c["suite"])) if c["parsed"] else 0
+            )
             totals["candidates"] += 1
             totals["parsed"] += c["parsed"]
             totals["valid_before_oracle"] += c.get("valid_before", False)
             totals["valid_after_oracle"] += c.get("valid", False)
             totals["valid_and_killing"] += bool(c.get("valid") and c["kills"])
+            totals["valid_killing_fits"] += bool(
+                c.get("valid") and c["kills"] and c["n_tokens"] <= MAX_TRAIN_TOKENS
+            )
             for k, v in c.get("oracle", {}).items():
                 if k != "repr_lengths":
                     oracle[k] += v
@@ -149,6 +166,8 @@ def main(argv: list[str]) -> int:
         "kept_assertion_styles": dict(styles),
         "kept_mean_mutation_score": sum(k["mutation_score"] for k in kept) / max(1, len(kept)),
         "kept_mean_tests": sum(k["n_tests"] for k in kept) / max(1, len(kept)),
+        "kept_mean_tokens": sum(k["n_tokens"] for k in kept) / max(1, len(kept)),
+        "max_train_tokens": MAX_TRAIN_TOKENS,
         "train": sum(1 for k in kept if k["family"] not in valid_fams),
         "valid": sum(1 for k in kept if k["family"] in valid_fams),
         "seed": args.seed,

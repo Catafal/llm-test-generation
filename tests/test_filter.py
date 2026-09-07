@@ -54,10 +54,11 @@ def test_bad_inputs_are_not_rescued():
 
 
 def test_best_prefers_score_then_fewer_tests():
-    a = {"valid": True, "kills": 3, "mutation_score": 0.5, "n_tests": 8}
-    b = {"valid": True, "kills": 3, "mutation_score": 0.5, "n_tests": 4}
-    c = {"valid": True, "kills": 0, "mutation_score": 0.0, "n_tests": 1}
-    assert best_per_function([a, b, c]) is b
+    a = {"valid": True, "kills": 3, "mutation_score": 0.5, "n_tests": 8, "n_tokens": 900}
+    b = {"valid": True, "kills": 3, "mutation_score": 0.5, "n_tests": 4, "n_tokens": 900}
+    c = {"valid": True, "kills": 0, "mutation_score": 0.0, "n_tests": 1, "n_tokens": 100}
+    d = {"valid": True, "kills": 5, "mutation_score": 0.9, "n_tests": 8, "n_tokens": 1500}
+    assert best_per_function([a, b, c, d]) is b  # d is best but too long to train on (D024)
     assert best_per_function([c]) is None
 
 

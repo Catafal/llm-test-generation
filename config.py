@@ -36,3 +36,7 @@ MAX_TESTS_PER_SUITE = int(os.getenv("MAX_TESTS_PER_SUITE", "8"))
 # D023: an oracle-filled expected value is only written back when its repr is
 # this short. Longer values are ones the model has no path to compute by hand.
 MAX_ORACLE_REPR = int(os.getenv("MAX_ORACLE_REPR", "40"))
+
+# D024: mlx-lm's Qwen3.5 DeltaNet training path OOMs above ~1024 tokens on 48 GB.
+# SFT examples longer than this (prompt + target, chat template) are not kept.
+MAX_TRAIN_TOKENS = int(os.getenv("MAX_TRAIN_TOKENS", "1024"))

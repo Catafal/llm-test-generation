@@ -11,16 +11,17 @@ data: data/train/sft                      # train.jsonl / valid.jsonl, chat form
 fine_tune_type: lora
 optimizer: adamw
 mask_prompt: true                         # completion-only loss (FT8)
-num_layers: -1                            # all layers
-batch_size: 2
-grad_accumulation_steps: 4                # effective batch 8 (FT8)
+num_layers: 16                            # last 16 (4 attention + 12 DeltaNet); D024: memory/speed of
+                                          # the DeltaNet training path, frozen layers keep the kernel
+batch_size: 1                             # D024: per-layer backward transient scales with T
+grad_accumulation_steps: 8                # effective batch 8 (FT8)
 learning_rate: 1.0e-4
 lr_schedule:
   name: cosine_decay
   warmup: 20
   arguments: [1.0e-4, 300, 1.0e-6]        # init, decay steps (~2 epochs of ~500 ex / 8), end
 iters: 300
-max_seq_length: 2048
+max_seq_length: 1024                      # D024: 1536 OOMs on 48 GB; filter drops longer examples
 grad_checkpoint: true                     # 48 GB Mac: trade compute for activation memory
 steps_per_report: 10
 steps_per_eval: 50                        # val loss is logged; early stopping is by dev harness (FT12)
@@ -45,5 +46,6 @@ lora_parameters:
     - mlp.up_proj
     - mlp.down_proj
   rank: 16
-  scale: 32.0                             # alpha; mlx-lm calls it scale (FT8: alpha 32)
+  scale: 2.0                              # = alpha/rank = 32/16. NOT alpha: mlx-lm multiplies the
+                                          # adapter output by scale directly (32 diverged, measured)
   dropout: 0.05
