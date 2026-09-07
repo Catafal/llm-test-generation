@@ -13,9 +13,26 @@ def test_messages_shape_zero_and_few_shot():
 
 
 def test_extract_prefers_fenced_block_and_rejects_garbage():
-    assert extract_suite("Here you go:\n```python\n" + SUITE + "```\nHope it helps") == SUITE
-    assert extract_suite(SUITE) == SUITE  # bare code
-    assert extract_suite("I cannot do that.") is None
+    suite, flags = extract_suite("Here you go:\n```python\n" + SUITE + "```\nHope it helps")
+    assert suite == SUITE and not any(flags.values())
+    assert extract_suite(SUITE)[0] == SUITE  # bare code
+    assert extract_suite("I cannot do that.")[0] is None
+
+
+def test_extract_salvages_truncated_fence_and_flags_it():
+    text = "```python\n" + SUITE + "\ndef test_b():\n    assert f(2) ==\n"  # cut mid-line, no close
+    suite, flags = extract_suite(text)
+    assert flags["truncated"] and "test_a" in suite and "test_b" not in suite
+
+
+def test_extract_injects_missing_pytest_import_and_flags_it():
+    text = (
+        "```python\nfrom solution import f\n\ndef test_e():\n"
+        "    with pytest.raises(ValueError):\n        f(-1)\n```"
+    )
+    suite, flags = extract_suite(text)
+    assert flags["pytest_import"] and suite.startswith("import pytest\n")
+    assert not extract_suite("```python\nimport pytest\n" + SUITE + "```")[1]["pytest_import"]
 
 
 def test_budget_truncates_tests_but_keeps_helpers():

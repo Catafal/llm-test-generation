@@ -27,6 +27,7 @@ SYSTEM = (
 USER = "Write the pytest test module for this function.\n\n```python\n{source}\n```"
 
 _FENCE = re.compile(r"```(?:python)?\s*\n(.*?)```", re.S)
+_OPEN_FENCE = re.compile(r"```(?:python)?\s*\n")
 
 
 def build_messages(
@@ -41,16 +42,41 @@ def build_messages(
     return messages
 
 
-def extract_suite(text: str) -> str | None:
-    """First fenced python block; else the whole reply if it parses; else None."""
+def extract_suite(text: str) -> tuple[str | None, dict[str, bool]]:
+    """Normalise a reply into a parseable test module, identically for every arm (D018).
+
+    Returns (suite or None, flags). Flags record what normalisation happened so
+    each arm's reliance on it can be reported:
+      truncated      the fenced block never closed (hit the token budget); the
+                     text was trimmed back to the last parseable statement.
+      pytest_import  ``pytest.`` was used without ``import pytest``; injected.
+    """
+    flags = {"truncated": False, "pytest_import": False}
     m = _FENCE.search(text)
-    candidate = m.group(1) if m else text
-    candidate = candidate.strip() + "\n"
-    try:
-        ast.parse(candidate)
-    except SyntaxError:
-        return None
-    return candidate
+    if m:
+        candidate = m.group(1)
+    elif (open_ := _OPEN_FENCE.search(text)) is not None:
+        candidate, flags["truncated"] = text[open_.end() :], True
+    else:
+        candidate = text
+    candidate = _trim_to_parseable(candidate.strip() + "\n")
+    if candidate is None:
+        return None, flags
+    if "pytest." in candidate and not re.search(r"^\s*import pytest\b", candidate, re.M):
+        candidate, flags["pytest_import"] = "import pytest\n" + candidate, True
+    return candidate, flags
+
+
+def _trim_to_parseable(src: str) -> str | None:
+    """Drop trailing lines until the module parses; None if nothing parses."""
+    lines = src.rstrip("\n").split("\n")
+    while lines:
+        try:
+            ast.parse("\n".join(lines) + "\n")
+            return "\n".join(lines) + "\n"
+        except SyntaxError:
+            lines.pop()
+    return None
 
 
 def enforce_test_budget(suite: str, max_tests: int) -> tuple[str, int]:

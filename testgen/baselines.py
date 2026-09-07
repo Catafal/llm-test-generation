@@ -60,9 +60,9 @@ def score_generation(text: str, source: str, equivalent: set[str]) -> dict:
     """Extract, budget, run, score. Returns a JSON-able record."""
     from testgen.generate.prompts import enforce_test_budget, extract_suite
 
-    suite = extract_suite(text)
+    suite, flags = extract_suite(text)
     if suite is None:
-        return {"parsed": False, "score": None}
+        return {"parsed": False, "score": None, **flags}
     suite, n_tests = enforce_test_budget(suite, MAX_TESTS_PER_SUITE)
     mutants = generate_mutants(source)
     live, trivial = split_equivalent(source, mutants)
@@ -71,7 +71,13 @@ def score_generation(text: str, source: str, equivalent: set[str]) -> dict:
     ref = run_suite(suite, source)
     runs = run_many(suite, {m.id: m.source for m in live})
     s = score_suite(ref, runs, excluded)
-    return {"parsed": True, "suite": suite, "n_tests_generated": n_tests, "score": asdict(s)}
+    return {
+        "parsed": True,
+        "suite": suite,
+        "n_tests_generated": n_tests,
+        "score": asdict(s),
+        **flags,
+    }
 
 
 def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, tag: str) -> dict:
@@ -101,6 +107,8 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
             f.write(json.dumps(rec) + "\n")
     agg = aggregate(scores)
     agg["unparsed"] = sum(1 for r in records if not r["parsed"])
+    agg["truncated"] = sum(1 for r in records if r.get("truncated"))
+    agg["pytest_import_added"] = sum(1 for r in records if r.get("pytest_import"))
     agg["mean_completion_tokens"] = sum(
         r["generation"]["completion_tokens"] for r in records
     ) / len(records)
@@ -141,11 +149,15 @@ def main(argv: list[str]) -> int:
             table[f"{key}/{cond}"] = run_condition(backend, rows, fs, run_dir, cond)
         del backend
     manifest.update(run_dir, results=table)
-    print(f"\n{'arm':<16}{'n':>4}{'valid':>7}{'mut.score':>11}{'unparsed':>10}{'tok':>7}{'s':>6}")
+    print(
+        f"\n{'arm':<14}{'n':>4}{'valid':>7}{'mut.score':>10}{'unparsed':>9}{'trunc':>6}"
+        f"{'+pytest':>8}{'tok':>6}{'s':>6}"
+    )
     for arm, a in table.items():
         print(
-            f"{arm:<16}{a['suites']:>4}{a['validity_rate']:>7.2f}{a['mean_mutation_score']:>11.3f}"
-            f"{a['unparsed']:>10}{a['mean_completion_tokens']:>7.0f}{a['mean_seconds']:>6.1f}"
+            f"{arm:<14}{a['suites']:>4}{a['validity_rate']:>7.2f}{a['mean_mutation_score']:>10.3f}"
+            f"{a['unparsed']:>9}{a['truncated']:>6}{a['pytest_import_added']:>8}"
+            f"{a['mean_completion_tokens']:>6.0f}{a['mean_seconds']:>6.1f}"
         )
     print(f"\nrun: {run_dir}")
     return 0
