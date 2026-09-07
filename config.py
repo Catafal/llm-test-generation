@@ -20,6 +20,9 @@ MODEL_CACHE_DIR = Path(os.getenv("MODEL_CACHE_DIR", ROOT / ".cache" / "models"))
 
 # Sandbox limits for running generated tests (harness/runner.py).
 TEST_TIMEOUT_SECONDS = int(os.getenv("TEST_TIMEOUT_SECONDS", "10"))
+# Parallel sandboxed runs. Each run is its own subprocess, so a thread pool
+# is enough; half the cores leaves room for the model process during eval.
+HARNESS_WORKERS = int(os.getenv("HARNESS_WORKERS", str(max(1, (os.cpu_count() or 2) // 2))))
 
 # Fixed generation budget shared by every condition (FT16). Changing these
 # invalidates comparability across runs; the manifest records them.

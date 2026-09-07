@@ -19,10 +19,11 @@ import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from config import TEST_TIMEOUT_SECONDS
+from config import HARNESS_WORKERS, TEST_TIMEOUT_SECONDS
 
 SOLUTION_FILE = "solution.py"
 SUITE_FILE = "test_solution.py"
@@ -149,3 +150,23 @@ def run_suite(
         status = "crash" if crashed else "ok"
         tail = "\n".join((proc.stderr or proc.stdout).splitlines()[-15:])
         return RunResult(status, tests, use_sandbox, duration, tail)
+
+
+def run_many(
+    suite_src: str,
+    impls: dict[str, str],
+    timeout_s: int = TEST_TIMEOUT_SECONDS,
+    sandbox: bool | None = None,
+    workers: int = HARNESS_WORKERS,
+) -> dict[str, RunResult]:
+    """Run one suite against many implementations in parallel.
+
+    Isolation is unchanged: every run is still its own sandboxed subprocess;
+    the pool only overlaps their wall-clock. Result order follows ``impls``.
+    """
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            key: pool.submit(run_suite, suite_src, src, timeout_s, sandbox)
+            for key, src in impls.items()
+        }
+        return {key: f.result() for key, f in futures.items()}

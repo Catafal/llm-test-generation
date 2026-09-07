@@ -2,7 +2,7 @@
 
 import pytest
 
-from testgen.harness.runner import run_suite, sandbox_available
+from testgen.harness.runner import run_many, run_suite, sandbox_available
 
 IMPL = "def add(a, b):\n    return a + b\n"
 
@@ -75,3 +75,17 @@ def test_sandbox_denies_writes_outside_workdir(tmp_path):
     r = run_suite(suite, IMPL, sandbox=True)
     assert r.status == "ok" and r.any_failed
     assert not target.exists()
+
+
+def test_run_many_matches_sequential_and_keeps_keys():
+    suite = "from solution import add\n\ndef test_x():\n    assert add(1, 1) == 2\n"
+    impls = {
+        "ok": IMPL,
+        "bad": "def add(a, b):\n    return a - b\n",
+        "hang": "import time\ntime.sleep(30)\n",
+    }
+    results = run_many(suite, impls, timeout_s=2, workers=3)
+    assert list(results) == ["ok", "bad", "hang"]
+    assert not results["ok"].any_failed
+    assert results["bad"].any_failed
+    assert results["hang"].status == "timeout"

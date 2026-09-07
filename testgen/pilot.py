@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from config import ROOT
-from testgen.harness.runner import RunResult, run_suite
+from testgen.harness.runner import RunResult, run_many, run_suite
 from testgen.harness.score import SuiteScore, score_suite
 from testgen.mutate.equivalence import split_equivalent
 from testgen.mutate.operators import Mutant, generate_mutants
@@ -66,7 +66,7 @@ def _evaluate(case: Case) -> CaseResult:
     live = [m for m in live if m.id not in excluded]
 
     def score(suite: str) -> tuple[SuiteScore, dict[str, RunResult]]:
-        runs = {m.id: run_suite(suite, m.source) for m in live}
+        runs = run_many(suite, {m.id: m.source for m in live})
         return score_suite(run_suite(suite, case.source), runs, set(excluded)), runs
 
     weak, weak_runs = score(case.weak)
