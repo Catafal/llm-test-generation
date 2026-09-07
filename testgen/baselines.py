@@ -26,15 +26,11 @@ from config import MAX_TESTS_PER_SUITE, ROOT
 from testgen.harness import manifest
 from testgen.harness.runner import run_many, run_suite
 from testgen.harness.score import aggregate, score_suite
+from testgen.models import MODELS  # noqa: E402  (registry lives with the storage manager)
 from testgen.mutate.equivalence import split_equivalent
 from testgen.mutate.operators import generate_mutants
 from testgen.pilot import load_cases
 
-MODELS = {
-    "9b": "mlx-community/Qwen3.5-9B-4bit",
-    "4b": "mlx-community/Qwen3.5-4B-4bit",
-    "coder7b": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
-}
 SHOT_CASES = ("clamp", "letter_grade")
 BATCH = 8
 

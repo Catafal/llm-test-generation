@@ -31,5 +31,17 @@ harvest:          ## harvest post-cutoff pure functions from GitHub into data/he
 decontaminate:    ## build data/heldout/pool.jsonl + report (needs `make sync-decontam` first)
 	uv run --group dev --group decontam python -m testgen.data.decontaminate
 
+models-list:      ## models on disk under models/hf/ with sizes
+	uv run python -m testgen.models list
+
+models-pull:      ## download models into the repo: KEYS="9b 4b coder7b embed"
+	uv run python -m testgen.models pull $(or $(KEYS),9b 4b coder7b)
+
+models-rm:        ## delete models: KEYS="4b" or ALL=1 to free everything
+	uv run python -m testgen.models rm $(if $(ALL),--all,$(KEYS))
+
+clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the pool is frozen)
+	rm -rf .cache/harvest
+
 eval:             ## score a run against the held-out pool
 	@echo "not implemented yet (weekend 1, T7)"; exit 1

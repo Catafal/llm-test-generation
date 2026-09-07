@@ -35,6 +35,20 @@ make baselines  # prompting baselines for the candidate models
 make eval       # score a run against the held-out pool
 ```
 
+## Storage
+
+Everything large lives inside the repo and is gitignored, so the whole
+experiment can be removed without hunting through home-directory caches:
+
+| path | what | remove with |
+|---|---|---|
+| `models/hf/` | every model weight this project downloads | `make models-rm ALL=1` |
+| `.cache/harvest/` | cloned GitHub repos used to build the held-out pool | `make clean-harvest` |
+| `.cache/mbpp/` | MBPP training pool (small) | `rm -rf .cache/mbpp` |
+| `runs/*/outputs.jsonl` | raw generations (manifests stay committed) | delete the run folder |
+
+`make models-list` shows what is on disk; `make models-pull KEYS="9b"` re-downloads.
+
 ## Research trail
 
 - `docs/research/2026-09-06-base-model-selection/` — why Qwen3.5-9B

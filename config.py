@@ -15,8 +15,12 @@ load_dotenv(ROOT / ".env")
 # Where raw run outputs and manifests go. Gitignored except manifests.
 RUNS_DIR = Path(os.getenv("RUNS_DIR", ROOT / "runs"))
 
-# Local model cache for mlx-lm downloads. Gitignored.
-MODEL_CACHE_DIR = Path(os.getenv("MODEL_CACHE_DIR", ROOT / ".cache" / "models"))
+# Every model this project downloads lives inside the repo under models/hf/
+# (gitignored) so the whole experiment can be removed with `make models-rm`.
+# huggingface_hub reads HF_HUB_CACHE at import time, so it is set here, before
+# any mlx_lm / sentence_transformers import. See testgen/models.py.
+MODEL_CACHE_DIR = Path(os.getenv("MODEL_CACHE_DIR", ROOT / "models" / "hf"))
+os.environ.setdefault("HF_HUB_CACHE", str(MODEL_CACHE_DIR))
 
 # Sandbox limits for running generated tests (harness/runner.py).
 TEST_TIMEOUT_SECONDS = int(os.getenv("TEST_TIMEOUT_SECONDS", "10"))
@@ -26,5 +30,5 @@ HARNESS_WORKERS = int(os.getenv("HARNESS_WORKERS", str(max(1, (os.cpu_count() or
 
 # Fixed generation budget shared by every condition (FT16). Changing these
 # invalidates comparability across runs; the manifest records them.
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "1024"))
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "2048"))  # D019: 1024 truncated the 9B
 MAX_TESTS_PER_SUITE = int(os.getenv("MAX_TESTS_PER_SUITE", "8"))
