@@ -180,7 +180,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--dir", default=str(HELDOUT), help="pool directory holding candidates.jsonl")
     ap.add_argument("--against", choices=["mbpp", "heldout"], default="mbpp")
     args = ap.parse_args(argv)
-    out_dir = Path(args.dir)
+    out_dir = Path(args.dir).resolve()
 
     held = [
         json.loads(ln)

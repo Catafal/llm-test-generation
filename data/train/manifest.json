@@ -1,0 +1,21 @@
+{
+ "dir": "data/train",
+ "against": "heldout",
+ "floor": "2026-06-01",
+ "candidates": 586,
+ "removed_vs_reference": 11,
+ "merged_duplicates": 25,
+ "kept": 550,
+ "families": 88,
+ "repos": 91,
+ "reference": "data/heldout/pool.jsonl",
+ "reference_sha256": "483e2b0f2a3ee7ee8dae8e9926b41fb06204e3dc70d2a0a0f3f24bde49d3caeb",
+ "thresholds": {
+  "ngram_n": 10,
+  "ast_jaccard": 0.85,
+  "cosine_flag": 0.9,
+  "cosine_review": 0.8
+ },
+ "embedding_model": "jinaai/jina-embeddings-v2-base-code",
+ "generated": "2026-09-07"
+}
