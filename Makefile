@@ -28,6 +28,12 @@ split:            ## family-wise test/dev split of data/heldout/pool.jsonl (D020
 derisk:           ## D023 de-risk: 4B self-samples, rejection vs oracle-fill on 40 dev fns
 	uv run --group models python -m testgen.train.derisk --n $(or $(N),40) --k $(or $(K),4) --batch $(or $(BATCH),16)
 
+propose:          ## T2: 4B self-samples K per training fn; K=8 BATCH=16 [RESUME=runs/propose-*]
+	uv run --group models python -m testgen.train.propose --k $(or $(K),8) --batch $(or $(BATCH),16) $(if $(RESUME),--resume $(RESUME),)
+
+filter:           ## T3: oracle-fill + execution filter -> data/train/sft/; RUN=runs/propose-*
+	uv run python -m testgen.train.filter --run $(RUN)
+
 baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b
 	uv run python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b)
 
