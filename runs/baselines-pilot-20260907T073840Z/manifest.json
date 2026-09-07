@@ -1,0 +1,51 @@
+{
+ "run": "baselines-pilot-20260907T073840Z",
+ "created": "2026-09-07T07:38:40.916965+00:00",
+ "git_sha": "4a4a253fe53c92dadfabbfd56c2bc65e0aa30789",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 1024,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "pilot",
+ "n_functions": 10,
+ "models": [
+  "mlx-community/Qwen3.5-4B-4bit"
+ ],
+ "conditions": [
+  "zero",
+  "few"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "results": {
+  "4b/zero": {
+   "suites": 10,
+   "valid": 6,
+   "validity_rate": 0.6,
+   "false_failure_suites": 4,
+   "mutants_killed": 68,
+   "mutants_live_total": 70,
+   "mean_mutation_score": 0.9674185463659147,
+   "unparsed": 0,
+   "mean_completion_tokens": 293.8,
+   "mean_seconds": 2.0682211832958273
+  },
+  "4b/few": {
+   "suites": 8,
+   "valid": 5,
+   "validity_rate": 0.625,
+   "false_failure_suites": 3,
+   "mutants_killed": 62,
+   "mutants_live_total": 64,
+   "mean_mutation_score": 0.9609022556390977,
+   "unparsed": 0,
+   "mean_completion_tokens": 276.125,
+   "mean_seconds": 2.529640859371284
+  }
+ }
+}

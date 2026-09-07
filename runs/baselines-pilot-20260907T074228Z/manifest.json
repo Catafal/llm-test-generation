@@ -1,0 +1,76 @@
+{
+ "run": "baselines-pilot-20260907T074228Z",
+ "created": "2026-09-07T07:42:28.985988+00:00",
+ "git_sha": "4a4a253fe53c92dadfabbfd56c2bc65e0aa30789",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 1024,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "pilot",
+ "n_functions": 10,
+ "models": [
+  "mlx-community/Qwen3.5-9B-4bit",
+  "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit"
+ ],
+ "conditions": [
+  "zero",
+  "few"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "results": {
+  "9b/zero": {
+   "suites": 8,
+   "valid": 5,
+   "validity_rate": 0.625,
+   "false_failure_suites": 3,
+   "mutants_killed": 78,
+   "mutants_live_total": 79,
+   "mean_mutation_score": 0.9714285714285713,
+   "unparsed": 2,
+   "mean_completion_tokens": 624.2,
+   "mean_seconds": 6.435512562491931
+  },
+  "9b/few": {
+   "suites": 7,
+   "valid": 3,
+   "validity_rate": 0.42857142857142855,
+   "false_failure_suites": 4,
+   "mutants_killed": 39,
+   "mutants_live_total": 40,
+   "mean_mutation_score": 0.9824561403508771,
+   "unparsed": 1,
+   "mean_completion_tokens": 580.75,
+   "mean_seconds": 7.069210671877954
+  },
+  "coder7b/zero": {
+   "suites": 9,
+   "valid": 2,
+   "validity_rate": 0.2222222222222222,
+   "false_failure_suites": 7,
+   "mutants_killed": 20,
+   "mutants_live_total": 20,
+   "mean_mutation_score": 1.0,
+   "unparsed": 1,
+   "mean_completion_tokens": 316.4,
+   "mean_seconds": 3.751628366694786
+  },
+  "coder7b/few": {
+   "suites": 8,
+   "valid": 6,
+   "validity_rate": 0.75,
+   "false_failure_suites": 2,
+   "mutants_killed": 84,
+   "mutants_live_total": 86,
+   "mean_mutation_score": 0.9674185463659147,
+   "unparsed": 0,
+   "mean_completion_tokens": 191.25,
+   "mean_seconds": 3.201738494739402
+  }
+ }
+}

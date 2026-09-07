@@ -1,0 +1,113 @@
+{
+ "run": "baselines-test-20260907T081718Z",
+ "created": "2026-09-07T08:17:18.191976+00:00",
+ "git_sha": "04c2fd388597e3eb48b61b157f720aa984aa9519",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "test",
+ "n_functions": 315,
+ "models": [
+  "mlx-community/Qwen3.5-9B-4bit",
+  "mlx-community/Qwen3.5-4B-4bit",
+  "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit"
+ ],
+ "conditions": [
+  "zero",
+  "few"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "results": {
+  "9b/zero": {
+   "suites": 315,
+   "valid": 119,
+   "validity_rate": 0.37777777777777777,
+   "false_failure_suites": 174,
+   "mutants_killed": 2758,
+   "mutants_live_total": 3585,
+   "mean_mutation_score": 0.8640697139283153,
+   "unparsed": 0,
+   "truncated": 42,
+   "pytest_import_added": 48,
+   "mean_completion_tokens": 1083.3111111111111,
+   "mean_seconds": 10.637972366272487
+  },
+  "9b/few": {
+   "suites": 315,
+   "valid": 107,
+   "validity_rate": 0.3396825396825397,
+   "false_failure_suites": 206,
+   "mutants_killed": 2258,
+   "mutants_live_total": 2737,
+   "mean_mutation_score": 0.8710524936028261,
+   "unparsed": 0,
+   "truncated": 20,
+   "pytest_import_added": 30,
+   "mean_completion_tokens": 773.4349206349207,
+   "mean_seconds": 10.1275329813594
+  },
+  "4b/zero": {
+   "suites": 315,
+   "valid": 126,
+   "validity_rate": 0.4,
+   "false_failure_suites": 182,
+   "mutants_killed": 3029,
+   "mutants_live_total": 3960,
+   "mean_mutation_score": 0.8689914750361314,
+   "unparsed": 0,
+   "truncated": 45,
+   "pytest_import_added": 6,
+   "mean_completion_tokens": 747.0888888888888,
+   "mean_seconds": 5.293504249067637
+  },
+  "4b/few": {
+   "suites": 315,
+   "valid": 121,
+   "validity_rate": 0.38412698412698415,
+   "false_failure_suites": 193,
+   "mutants_killed": 2904,
+   "mutants_live_total": 3667,
+   "mean_mutation_score": 0.8885130453104936,
+   "unparsed": 0,
+   "truncated": 4,
+   "pytest_import_added": 0,
+   "mean_completion_tokens": 429.16825396825396,
+   "mean_seconds": 3.809504917730385
+  },
+  "coder7b/zero": {
+   "suites": 315,
+   "valid": 80,
+   "validity_rate": 0.25396825396825395,
+   "false_failure_suites": 234,
+   "mutants_killed": 2223,
+   "mutants_live_total": 2726,
+   "mean_mutation_score": 0.881811972547969,
+   "unparsed": 0,
+   "truncated": 7,
+   "pytest_import_added": 58,
+   "mean_completion_tokens": 509.5238095238095,
+   "mean_seconds": 5.260549322600358
+  },
+  "coder7b/few": {
+   "suites": 315,
+   "valid": 111,
+   "validity_rate": 0.3523809523809524,
+   "false_failure_suites": 202,
+   "mutants_killed": 2298,
+   "mutants_live_total": 2629,
+   "mean_mutation_score": 0.9081596993094423,
+   "unparsed": 0,
+   "truncated": 15,
+   "pytest_import_added": 16,
+   "mean_completion_tokens": 434.5492063492064,
+   "mean_seconds": 6.356830435579953
+  }
+ }
+}
