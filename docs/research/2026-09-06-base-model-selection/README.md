@@ -117,6 +117,83 @@ models (Granite 4.2, Gemma 4, Qwen3.5) are excluded for this project: reasoning
 tokens consume the fixed generation budget and complicate SFT formatting,
 which adds confounds to a comparison that must stay clean.
 
+### Qwen3.5 as a base to specialise into a test writer (2026-09-07)
+
+Jordi asked whether a general Qwen3.5 model could be turned into a
+test-writing coder instead of starting from Qwen2.5-Coder. Checked all four
+cards plus the [collection](https://huggingface.co/collections/Qwen/qwen35).
+
+**What the cards publish.** Only LiveCodeBench v6 and OJBench, and only for
+the instruct models. Neither Base card publishes any coding benchmark. The
+instruct numbers are reported with thinking enabled; no non-thinking numbers
+are published.
+
+| Model | Params | Arch | Thinking | LiveCodeBench v6 | OJBench | HumanEval+ / MBPP+ | MLX conversion |
+|---|---|---|---|---|---|---|---|
+| [Qwen2.5-Coder-7B-Instruct](https://arxiv.org/html/2409.12186v3) | 7B | dense transformer | none | 18.9 (secondary source, [IQuest-Coder report](https://arxiv.org/pdf/2603.16733)) | — | 84.1 / 71.7 | yes |
+| [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B) | 9B | hybrid: 3× Gated DeltaNet + 1× gated attention per block, vision encoder | on by default, `enable_thinking=False` supported | 65.6 | 29.2 | not published | `mlx-community/Qwen3.5-9B-OptiQ-4bit` |
+| [Qwen3.5-9B-Base](https://huggingface.co/Qwen/Qwen3.5-9B-Base) | 9B | same | n/a | not published | — | not published | not checked |
+| [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) | 4B | same, hidden 2560 | on by default, disable supported | 55.8 | 24.1 | not published | `mlx-community/Qwen3.5-4B-4bit`, `-MLX-4bit`, `-bf16` and more |
+| [Qwen3.5-4B-Base](https://huggingface.co/Qwen/Qwen3.5-4B-Base) | 4B | same | n/a | not published | — | not published | not checked |
+
+All Qwen3.5 models are Apache 2.0 and multimodal (image-text-to-text). No
+coder-specific Qwen3.5 variant exists.
+
+**Reading the numbers.** LiveCodeBench is competitive programming and rewards
+long reasoning; the Qwen3.5 scores are with thinking on. With thinking off,
+which our fixed-budget comparison requires, the gap to Qwen2.5-Coder-7B is
+unknown and certainly smaller. HumanEval+/MBPP+ is the benchmark closest to
+"write correct code for one function", and Qwen3.5 publishes nothing there.
+So the honest statement is: Qwen3.5-9B is probably the stronger coder, but the
+evidence for the regime we would run it in does not exist yet.
+
+**Feasibility on a Mac, verified precedent.** [sciences44/mlx-lora-finetune](https://github.com/sciences44/mlx-lora-finetune)
+LoRA-tuned Qwen3.5-0.8B, 2B and 4B on an M1 64 GB with mlx-lm for text-to-SQL:
+8–15 min per run, peak memory 3.9–11.1 GB, 115–475 tok/s. The 4B needed the
+vision weights stripped manually. Their 2B beat their 4B after tuning, and
+their eval was string-matching, not execution. Nobody has published a 9B run.
+mlx-lm's LoRA attaches to `q/k/v/o_proj` and MLP projections; in Qwen3.5 the
+attention projections exist in only one of every four sublayers, so default
+adapters cover less of the network than on a dense transformer. Workable, but
+it is a config decision that must be recorded, not a default.
+
+**Base or Instruct.** Instruct, with thinking disabled for every condition.
+A Base model has no usable prompting baseline, so "fine-tune beats prompting"
+becomes trivially true and proves nothing. Prior work (UTGen) fine-tunes from
+instruct models. Base is the fallback only if the instruct's non-thinking
+behaviour turns out broken.
+
+**Does "general model → test specialist" make a better story?** Somewhat. It
+shows specialising a general 2026 model rather than nudging a coder model.
+But 500–1,000 SFT examples do not teach coding; they teach test-writing
+behaviour on top of coding ability the base already has. The story holds
+only if Qwen3.5's non-thinking coding ability is at least on par with
+Qwen2.5-Coder-7B, which is exactly the unmeasured thing.
+
+**Trade-offs specific to Qwen3.5.**
+- Contamination: February 2026 cutoff leaves a small post-cutoff function
+  pool for held-out evaluation. Qwen2.5-Coder's 2024 cutoff leaves a large one.
+- Multimodal weights: dead weight for this task, and the 4B needed a manual
+  strip to train. Memory and load time cost, no benefit.
+- Architecture risk: hybrid Gated DeltaNet is newer in mlx-lm; a training
+  bug costs a weekend. Dense Qwen2.5-Coder has none of this risk.
+- Narrative gain: a 2026 general model specialised into a test writer reads
+  better in an application than a 2024 coder model nudged.
+
+**Revised pilot set.** Replace the 1.5B slot with Qwen3.5-4B, which fills the
+"small and fast" role with a working Mac precedent and a 2026 story:
+
+1. `Qwen2.5-Coder-7B-Instruct` — control; known-good, dense, non-thinking.
+2. `Qwen3.5-4B` (thinking off) — small, fast, 2026, precedent exists.
+3. `Qwen3.5-9B` (thinking off) — strongest candidate on paper, untested on Mac.
+
+Same decision rule: the smallest model whose prompting baseline is functional
+on the pilot's mutation score. If Qwen3.5-9B's non-thinking baseline is as
+good as Qwen2.5-Coder-7B's, take it for the narrative; if it is clearly worse
+or training misbehaves, the control wins. Either way the pilot numbers are the
+first published non-thinking test-generation baselines for Qwen3.5 and belong
+in the write-up.
+
 ---
 
 ## 2. Recommendation
@@ -141,7 +218,7 @@ Either way, the pilot numbers are recorded and become part of the write-up.
 a 1.5B model being functional at this task under prompting. Treat 1.5B passing
 the bar as a pleasant surprise, not the plan.
 
-**Primary candidates for the pilot: the two Qwen sizes.** Add Granite-4.1-8B
+**Primary candidates for the pilot: superseded by the revised pilot set in the Qwen3.5 section above (Qwen2.5-Coder-7B control, Qwen3.5-4B, Qwen3.5-9B).** Original note: Add Granite-4.1-8B
 to the pilot only if the 7B Qwen baseline is unexpectedly poor or if a 2026
 base matters for the application narrative; baseline generation is cheap.
 
