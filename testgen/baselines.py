@@ -35,6 +35,8 @@ from testgen.pilot import load_cases
 
 SHOT_CASES = ("clamp", "letter_grade")
 BATCH = 8
+BEST_OF_K = 4  # D023 ceiling row: K temperature samples, first one valid on the reference wins
+BEST_OF_TEMP = 0.7
 
 
 def load_pool(name: str) -> list[dict]:
@@ -85,6 +87,30 @@ def score_generation(text: str, source: str, equivalent: set[str]) -> dict:
     }
 
 
+def best_of(backend, row: dict, shots: list | None) -> dict:
+    """Ceiling row (D023): K samples at temperature; the first that is valid on the
+    reference is scored (a caller holding the implementation can run the suite and
+    resample). Budget per sample is unchanged; total cost is K x, reported as such."""
+    from testgen.generate.mlx_backend import Generation  # lazy: mlx only where needed
+    from testgen.generate.prompts import build_messages
+
+    msgs = build_messages(row["source"], MAX_TESTS_PER_SUITE, shots)
+    gens = backend.generate_many([msgs] * BEST_OF_K, temperature=BEST_OF_TEMP)
+    chosen, rec = gens[0], None
+    for g in gens:
+        rec = score_generation(g.text, row["source"], row["equivalent"])
+        chosen = g
+        if rec["score"] is not None and rec["score"]["valid"]:
+            break
+    total = Generation(
+        chosen.text,
+        chosen.prompt_tokens,
+        sum(g.completion_tokens for g in gens),
+        sum(g.seconds for g in gens),
+    )
+    return {"generation": asdict(total), "samples": BEST_OF_K, **rec}
+
+
 def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, tag: str) -> dict:
     from testgen.generate.prompts import build_messages
     from testgen.harness.score import SuiteScore
@@ -92,17 +118,19 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
     records, scores = [], []
     for i in range(0, len(pool), BATCH):
         chunk = pool[i : i + BATCH]
-        gens = backend.generate_many(
-            [build_messages(r["source"], MAX_TESTS_PER_SUITE, shots) for r in chunk]
-        )
+        if tag == "bestof":
+            gens = [None] * len(chunk)
+        else:
+            gens = backend.generate_many(
+                [build_messages(r["source"], MAX_TESTS_PER_SUITE, shots) for r in chunk]
+            )
         for row, g in zip(chunk, gens, strict=True):
-            rec = {
-                "id": row["id"],
-                "condition": tag,
-                "model": backend.model_id,
-                "generation": asdict(g),
-            }
-            rec.update(score_generation(g.text, row["source"], row["equivalent"]))
+            rec = {"id": row["id"], "condition": tag, "model": backend.model_id}
+            if tag == "bestof":
+                rec.update(best_of(backend, row, shots))
+            else:
+                rec["generation"] = asdict(g)
+                rec.update(score_generation(g.text, row["source"], row["equivalent"]))
             records.append(rec)
             if rec["score"] is not None:
                 scores.append(SuiteScore(**rec["score"]))
@@ -125,7 +153,7 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pool", choices=["pilot", "test", "dev"], default="pilot")
     ap.add_argument("--models", default="9b,4b,coder7b")
-    ap.add_argument("--conditions", default="zero,few")
+    ap.add_argument("--conditions", default="zero,few", help="zero, few, bestof (ceiling row)")
     ap.add_argument("--limit", type=int, default=0, help="first N functions of the pool only")
     ap.add_argument("--adapter", default="", help="LoRA adapter dir applied to every model")
     ap.add_argument("--tag", default="", help="run-name suffix, e.g. the checkpoint id")
