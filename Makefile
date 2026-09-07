@@ -22,8 +22,8 @@ pilot:            ## run the 10-case pilot: harness must rank strong > weak on e
 pilot-survivors:  ## same, listing surviving mutants per case (for equivalence labelling)
 	uv run python -m testgen.pilot --survivors
 
-baselines:        ## zero-shot + few-shot for all pilot models, writes runs/<id>/manifest.json
-	@echo "not implemented yet (weekend 1, T7)"; exit 1
+baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|heldout MODELS=9b,4b,coder7b
+	uv run python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b)
 
 harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
 	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)
