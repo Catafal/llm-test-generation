@@ -20,14 +20,15 @@ lr_schedule:
   name: cosine_decay
   warmup: 10
   arguments: [1.0e-4, 150, 1.0e-6]        # init, decay steps, end
-iters: 150                                # 3 epochs of 388 examples at effective batch 8; the dev
-                                          # harness curve picks the checkpoint (FT12), not the epoch count
+iters: 1200                               # micro-batches (batch 1): 3 epochs of 388 = 150 optimizer
+                                          # steps at accumulation 8; the lr_schedule counts optimizer
+                                          # steps. The dev harness curve picks the checkpoint (FT12)
 max_seq_length: 1024                      # D024: 1536 OOMs on 48 GB; filter drops longer examples
 grad_checkpoint: true                     # 48 GB Mac: trade compute for activation memory
 steps_per_report: 10
-steps_per_eval: 25                        # val loss is logged; early stopping is by dev harness (FT12)
+steps_per_eval: 200                       # val loss is logged; early stopping is by dev harness (FT12)
 val_batches: -1
-save_every: 15                            # 10 checkpoints for the dev-harness curve
+save_every: 120                           # 10 checkpoints (every 15 optimizer steps) for the dev curve
 seed: 0
 adapter_path: models/adapters/lora-4b     # overridden per run
 lora_parameters:
