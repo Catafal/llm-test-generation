@@ -1,8 +1,14 @@
 # Three commands that matter. Everything else is a script under testgen/.
 .PHONY: setup lint test eval pilot baselines
 
-setup:            ## create .venv and install all deps (incl. dev)
-	uv sync --all-groups
+setup:            ## create .venv with dev + models groups (the default working set)
+	uv sync --group dev --group models
+
+sync-models:      ## switch venv to the models group (mlx-lm; transformers 5)
+	uv sync --group dev --group models
+
+sync-decontam:    ## switch venv to the decontam group (jina embeddings; transformers 4)
+	uv sync --group dev --group decontam
 
 lint:             ## ruff check + format check
 	uv run ruff check . && uv run ruff format --check .
@@ -21,6 +27,9 @@ baselines:        ## zero-shot + few-shot for all pilot models, writes runs/<id>
 
 harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
 	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)
+
+decontaminate:    ## build data/heldout/pool.jsonl + report (needs `make sync-decontam` first)
+	uv run --group dev --group decontam python -m testgen.data.decontaminate
 
 eval:             ## score a run against the held-out pool
 	@echo "not implemented yet (weekend 1, T7)"; exit 1

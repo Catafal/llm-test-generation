@@ -16,9 +16,18 @@ packages = ["testgen"]
 
 [tool.uv]
 package = true
+# mlx-lm needs transformers>=5; the jina code-embedding model's remote code
+# needs transformers<5. They cannot share a venv, so they are conflicting
+# groups: `make sync-models` for generation/training, `make sync-decontam`
+# for the one-off decontamination pass.
+conflicts = [[{ group = "models" }, { group = "decontam" }]]
 
 [dependency-groups]
-# Layer-2 decontamination only; heavy (torch). `uv sync --group decontam`.
+# Generation (T6+) and training: mlx-lm pulls transformers 5.
+models = [
+    "mlx-lm>=0.31.1",
+]
+# Layer-2 decontamination only; heavy (torch). Conflicts with `models`.
 decontam = [
     "sentence-transformers>=3.0,<5",
     "transformers>=4.45,<5",  # jina-v2-code remote code breaks on transformers 5
