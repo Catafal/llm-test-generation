@@ -1,0 +1,19 @@
+{
+ "mode": "dpo",
+ "config": "configs/dpo-4b.yaml",
+ "config_sha256": "d53d6c050e46a02dda935e82755074b91e9b2e9cd86732b83f0b0bd94e871f9a",
+ "model": "mlx-community/Qwen3.5-4B-bf16",
+ "data": "data/train/dpo",
+ "train_sha256": "046b582893f7ca598de6eeb7ca8fca5f606b024e783e11b4e7ec3824a897a804",
+ "num_layers": 16,
+ "lora_parameters": {
+  "rank": 8,
+  "scale": 2.0,
+  "dropout": 0.05
+ },
+ "beta": 0.1,
+ "learning_rate": 5e-06,
+ "iters": 940,
+ "seed": 0,
+ "git_sha": "402c5ad1dde6ad7e3181056b149a27970f61bf81"
+}
