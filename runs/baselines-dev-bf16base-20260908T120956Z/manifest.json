@@ -1,0 +1,41 @@
+{
+ "run": "baselines-dev-bf16base-20260908T120956Z",
+ "created": "2026-09-08T12:09:56.483551+00:00",
+ "git_sha": "9defb5bd2c7a3a89f38aa86dc64a9c76fc915f84",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 60,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": null,
+ "results": {
+  "4b-bf16/zero": {
+   "suites": 60,
+   "valid": 19,
+   "validity_rate": 0.31666666666666665,
+   "false_failure_suites": 38,
+   "mutants_killed": 459,
+   "mutants_live_total": 665,
+   "mean_mutation_score": 0.8500838957682678,
+   "unparsed": 0,
+   "truncated": 6,
+   "pytest_import_added": 0,
+   "mean_completion_tokens": 716.5666666666667,
+   "mean_seconds": 8.718335085379659
+  }
+ }
+}

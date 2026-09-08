@@ -1,0 +1,25 @@
+{
+ "run": "baselines-test-bf16base-few-20260908T143230Z",
+ "created": "2026-09-08T14:32:30.124458+00:00",
+ "git_sha": "8cc2abb2ec3b77a7869c7204896b8a44a8971a94",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "test",
+ "n_functions": 315,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "few"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": null
+}
