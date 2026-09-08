@@ -54,3 +54,16 @@ just the value.
 
 More positives-only SFT on Qwen3.5-4B; rank/LR/DoRA tuning as the primary
 lever; oracle-filled literals as targets without the derivation.
+
+## Measured after the reports: thinking on at inference (dev-60, budget 4096)
+
+Qwen3.5-4B bf16, same 60 dev functions, same prompt: **validity 0.34 with
+thinking on vs 0.32 off**; mutation score of valid suites 0.799 vs 0.850;
+mean 1,454 completion tokens (most of them reasoning) vs 717; 17.5 s per
+function vs 8.7. Run `baselines-dev-think4096-20260908T155256Z`. One extra
+valid suite for double the tokens: at 4B, reasoning tokens do not fix
+expected-value prediction, as CRUXEval predicted for this size. Consequence
+for the ranking: inference-time thinking and the STaR-with-thinking loop drop
+out; preference learning on pass/fail pairs and the oracle-shape change move
+up; execution-explanation SFT stays as the heavy bet (it trains a different
+thing than thinking at inference, and its evidence is at 3B).
