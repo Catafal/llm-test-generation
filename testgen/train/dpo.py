@@ -61,14 +61,20 @@ def write_manifest(args) -> None:
 
 
 def load_args(argv: list[str]):
-    """Same precedence as mlx_lm_lora.train.main: CLI > YAML > CONFIG_DEFAULTS."""
+    """Precedence: explicit CLI flag > YAML > parser default > CONFIG_DEFAULTS.
+
+    mlx-lm-lora's parser has real defaults (train_mode "sft", ...), so its own
+    "fill YAML only where None" rule silently ignores most YAML keys; here a
+    YAML key loses only to a flag actually present on the command line.
+    """
     parser: argparse.ArgumentParser = lora_train.build_parser()
     parser.add_argument("--chunked-recurrence", type=int, default=0, help="chunk size, 0 = off")
     args = parser.parse_args(argv)
+    explicit = {a.dest for a in parser._actions if any(opt in argv for opt in a.option_strings)}
     if args.config:
         with open(args.config) as f:
             for k, v in yaml.load(f, Loader=lora_train.yaml_loader).items():
-                if getattr(args, k, None) is None:
+                if k not in explicit:
                     setattr(args, k, v)
     for k, v in lora_train.CONFIG_DEFAULTS.items():
         if getattr(args, k, None) is None:
