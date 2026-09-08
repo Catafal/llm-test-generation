@@ -1,0 +1,10 @@
+{
+ "functions": 550,
+ "functions_with_pairs": 303,
+ "pairs": 497,
+ "rejected_oracle_rescued": 250,
+ "train": 470,
+ "valid": 27,
+ "max_train_tokens": 1024,
+ "pairs_per_function": 2
+}
