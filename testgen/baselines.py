@@ -67,10 +67,13 @@ def score_generation(text: str, source: str, equivalent: set[str]) -> dict:
     """Extract, budget, run, score. Returns a JSON-able record."""
     from testgen.generate.prompts import enforce_test_budget, extract_suite
 
-    suite, flags = extract_suite(text)
-    if suite is None:
-        return {"parsed": False, "score": None, **flags}
-    suite, n_tests = enforce_test_budget(suite, MAX_TESTS_PER_SUITE)
+    try:
+        suite, flags = extract_suite(text)
+        if suite is None:
+            return {"parsed": False, "score": None, **flags}
+        suite, n_tests = enforce_test_budget(suite, MAX_TESTS_PER_SUITE)
+    except RecursionError:  # pathological nesting blows ast.unparse; same rule for every arm
+        return {"parsed": False, "score": None, "truncated": False, "pytest_import": False}
     mutants = generate_mutants(source)
     live, trivial = split_equivalent(source, mutants)
     excluded = trivial | equivalent
@@ -116,6 +119,7 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
     from testgen.harness.score import SuiteScore
 
     records, scores = [], []
+    out = (run_dir / "outputs.jsonl").open("a")  # incremental: a crash keeps what was scored
     for i in range(0, len(pool), BATCH):
         chunk = pool[i : i + BATCH]
         if tag == "bestof":
@@ -132,12 +136,12 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
                 rec["generation"] = asdict(g)
                 rec.update(score_generation(g.text, row["source"], row["equivalent"]))
             records.append(rec)
+            out.write(json.dumps(rec) + "\n")
             if rec["score"] is not None:
                 scores.append(SuiteScore(**rec["score"]))
+        out.flush()
         print(f"  {tag}: {min(i + BATCH, len(pool))}/{len(pool)}", flush=True)
-    with (run_dir / "outputs.jsonl").open("a") as f:
-        for rec in records:
-            f.write(json.dumps(rec) + "\n")
+    out.close()
     agg = aggregate(scores)
     agg["unparsed"] = sum(1 for r in records if not r["parsed"])
     agg["truncated"] = sum(1 for r in records if r.get("truncated"))
