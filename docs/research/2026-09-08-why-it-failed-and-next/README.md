@@ -71,3 +71,13 @@ for the ranking: inference-time thinking and the STaR-with-thinking loop drop
 out; preference learning on pass/fail pairs and the oracle-shape change move
 up; execution-explanation SFT stays as the heavy bet (it trains a different
 thing than thinking at inference, and its evidence is at 3B).
+
+## Measured: LoRA speed on a dense base (Qwen3-4B-Instruct-2507 bf16)
+
+Same overfit-8 check, same wrapper, **all 36 layers**, sequence 2048, batch 1:
+**110–139 tok/s, peak memory 10.5 GB**, val loss 0.515 → 0.048 in 40 steps.
+Against Qwen3.5-4B's training path (16 layers, sequence capped at 1024):
+~37 tok/s at 25 GB. So the dense base is ~3.5x faster with all layers
+adapted, at 40% of the memory, with twice the sequence length; batch 4 and
+DPO's two sequences per example fit comfortably. Training feasibility is no
+longer a constraint on the recipe.
