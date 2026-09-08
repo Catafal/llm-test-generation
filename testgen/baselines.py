@@ -150,6 +150,9 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
         r["generation"]["completion_tokens"] for r in records
     ) / len(records)
     agg["mean_seconds"] = sum(r["generation"]["seconds"] for r in records) / len(records)
+    agg["mean_thinking_tokens"] = sum(
+        r["generation"].get("thinking_tokens", 0) for r in records
+    ) / len(records)
     return agg
 
 
@@ -161,6 +164,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--limit", type=int, default=0, help="first N functions of the pool only")
     ap.add_argument("--adapter", default="", help="LoRA adapter dir applied to every model")
     ap.add_argument("--tag", default="", help="run-name suffix, e.g. the checkpoint id")
+    ap.add_argument("--thinking", action="store_true", help="reasoning on (budget unchanged)")
     args = ap.parse_args(argv)
 
     from testgen.generate.mlx_backend import Backend
@@ -178,10 +182,11 @@ def main(argv: list[str]) -> int:
         conditions=args.conditions.split(","),
         few_shot_cases=list(SHOT_CASES),
         adapter=args.adapter or None,
+        thinking=args.thinking,
     )
     table: dict[str, dict] = {}
     for key in args.models.split(","):
-        backend = Backend(MODELS[key], adapter_path=args.adapter or None)
+        backend = Backend(MODELS[key], adapter_path=args.adapter or None, thinking=args.thinking)
         print(f"model {MODELS[key]}", flush=True)
         for cond in args.conditions.split(","):
             fs = shots if cond == "few" else None

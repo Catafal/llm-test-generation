@@ -9,6 +9,7 @@
 mlx-lm >= 0.31.1 is required: 0.31.0 had batched KV-cache cross-contamination.
 """
 
+import re
 import time
 from dataclasses import dataclass
 
@@ -17,6 +18,8 @@ from mlx_lm.sample_utils import make_sampler
 
 from config import MAX_NEW_TOKENS
 
+_THINK = re.compile(r"<think>.*?</think>\s*", re.S)
+
 
 @dataclass
 class Generation:
@@ -24,19 +27,27 @@ class Generation:
     prompt_tokens: int
     completion_tokens: int
     seconds: float
+    thinking_tokens: int = 0  # tokens inside <think>...</think>, stripped from text
 
 
 class Backend:
-    def __init__(self, model_id: str, adapter_path: str | None = None) -> None:
-        """``adapter_path``: a LoRA adapter directory (mlx-lm format) applied on load."""
+    def __init__(
+        self, model_id: str, adapter_path: str | None = None, thinking: bool = False
+    ) -> None:
+        """``adapter_path``: a LoRA adapter directory (mlx-lm format) applied on load.
+        ``thinking``: enable the model's reasoning block; it is stripped from the
+        returned text and counted in ``thinking_tokens`` (still inside the budget)."""
         self.model_id = model_id
         self.adapter_path = adapter_path
+        self.thinking = thinking
         self.model, self.tokenizer = mlx_lm.load(model_id, adapter_path=adapter_path)
 
     def _encode(self, messages: list[dict[str, str]]) -> list[int]:
         kwargs = {"add_generation_prompt": True, "tokenize": True}
         try:
-            return self.tokenizer.apply_chat_template(messages, enable_thinking=False, **kwargs)
+            return self.tokenizer.apply_chat_template(
+                messages, enable_thinking=self.thinking, **kwargs
+            )
         except TypeError:  # template without a thinking switch (e.g. Qwen2.5-Coder)
             return self.tokenizer.apply_chat_template(messages, **kwargs)
 
@@ -59,5 +70,10 @@ class Backend:
         out = []
         for p, text in zip(prompts, resp.texts, strict=True):
             n_out = len(self.tokenizer.encode(text))
-            out.append(Generation(text, len(p), n_out, elapsed / len(batch)))
+            n_think = 0
+            if self.thinking:
+                stripped = _THINK.sub("", text, count=1)
+                n_think = n_out - len(self.tokenizer.encode(stripped))
+                text = stripped
+            out.append(Generation(text, len(p), n_out, elapsed / len(batch), n_think))
         return out

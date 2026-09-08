@@ -44,7 +44,7 @@ devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=mo
 	uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60)
 
 baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b [LIMIT= ADAPTER= TAG= CONDITIONS=]
-	uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),)
+	uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),) $(if $(THINKING),--thinking,)
 
 harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
 	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)
