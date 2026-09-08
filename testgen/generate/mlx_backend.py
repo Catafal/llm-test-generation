@@ -18,7 +18,8 @@ from mlx_lm.sample_utils import make_sampler
 
 from config import MAX_NEW_TOKENS
 
-_THINK = re.compile(r"<think>.*?</think>\s*", re.S)
+# The template opens <think> inside the prompt, so output holds only the closing tag.
+_THINK = re.compile(r"^(?:<think>)?.*?</think>\s*", re.S)
 
 
 @dataclass

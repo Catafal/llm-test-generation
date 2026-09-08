@@ -22,6 +22,7 @@ MODELS = {
     "9b": "mlx-community/Qwen3.5-9B-4bit",  # D010 target, inference-only 4-bit
     "4b": "mlx-community/Qwen3.5-4B-4bit",  # D021 target, inference/proposer (4-bit)
     "4b-bf16": "mlx-community/Qwen3.5-4B-bf16",  # D021 fine-tune base (bf16 LoRA, FT9)
+    "q3-4b-bf16": "mlx-community/Qwen3-4B-Instruct-2507-bf16",  # dense candidate
     "coder7b": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",  # baseline-only reference row
     "embed": "jinaai/jina-embeddings-v2-base-code",  # decontamination layer 2
 }

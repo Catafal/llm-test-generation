@@ -57,10 +57,14 @@ lever; oracle-filled literals as targets without the derivation.
 
 ## Measured after the reports: thinking on at inference (dev-60, budget 4096)
 
-Qwen3.5-4B bf16, same 60 dev functions, same prompt: **validity 0.34 with
-thinking on vs 0.32 off**; mutation score of valid suites 0.799 vs 0.850;
-mean 1,454 completion tokens (most of them reasoning) vs 717; 17.5 s per
-function vs 8.7. Run `baselines-dev-think4096-20260908T155256Z`. One extra
+Qwen3.5-4B bf16, same 60 dev functions, same prompt: **validity 0.333 with
+thinking on vs 0.32 off** (re-scored offline after fixing the think-block
+stripper: the template opens `<think>` in the prompt, so only the closing tag
+appears in the output; 55/60 outputs reasoned, ~2.5k characters each; 5 hit
+the 4,096 budget); mutation score of valid suites 0.813 vs 0.850; mean 1,454
+completion tokens vs 717; 17.5 s per function vs 8.7. Run
+`baselines-dev-think4096-20260908T155256Z` (its manifest carries the first,
+mis-stripped scoring: 0.34). One extra
 valid suite for double the tokens: at 4B, reasoning tokens do not fix
 expected-value prediction, as CRUXEval predicted for this size. Consequence
 for the ranking: inference-time thinking and the STaR-with-thinking loop drop
