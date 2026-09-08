@@ -1,0 +1,53 @@
+{
+ "0000120": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000120-20260908T103829Z",
+  "validity": 0.43333333333333335,
+  "mutation_score": 0.8486675151904711
+ },
+ "0000240": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000240-20260908T104828Z",
+  "validity": 0.36666666666666664,
+  "mutation_score": 0.7915430813115422
+ },
+ "0000360": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000360-20260908T105812Z",
+  "validity": 0.43333333333333335,
+  "mutation_score": 0.6781982266167206
+ },
+ "0000480": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000480-20260908T110846Z",
+  "validity": 0.4,
+  "mutation_score": 0.7518161165387954
+ },
+ "0000600": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000600-20260908T111643Z",
+  "validity": 0.4166666666666667,
+  "mutation_score": 0.6673974514278969
+ },
+ "0000720": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000720-20260908T112239Z",
+  "validity": 0.38333333333333336,
+  "mutation_score": 0.7574991903121588
+ },
+ "0000840": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000840-20260908T114326Z",
+  "validity": 0.38333333333333336,
+  "mutation_score": 0.7604983120008785
+ },
+ "0000960": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0000960-20260908T114941Z",
+  "validity": 0.38333333333333336,
+  "mutation_score": 0.7942431964847528
+ },
+ "0001080": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0001080-20260908T115531Z",
+  "validity": 0.38333333333333336,
+  "mutation_score": 0.786835275138569
+ },
+ "0001200": {
+  "run": "baselines-dev-lora-4b-r16-ckpt0001200-20260908T120218Z",
+  "validity": 0.4,
+  "mutation_score": 0.7359261033359257
+ },
+ "best": "0000120"
+}

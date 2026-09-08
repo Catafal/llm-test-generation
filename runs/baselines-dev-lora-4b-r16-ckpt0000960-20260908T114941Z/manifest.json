@@ -1,0 +1,41 @@
+{
+ "run": "baselines-dev-lora-4b-r16-ckpt0000960-20260908T114941Z",
+ "created": "2026-09-08T11:49:41.269689+00:00",
+ "git_sha": "9defb5bd2c7a3a89f38aa86dc64a9c76fc915f84",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 60,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": "models/adapters/lora-4b-r16/ckpt-0000960",
+ "results": {
+  "4b-bf16/zero": {
+   "suites": 60,
+   "valid": 23,
+   "validity_rate": 0.38333333333333336,
+   "false_failure_suites": 35,
+   "mutants_killed": 447,
+   "mutants_live_total": 898,
+   "mean_mutation_score": 0.7942431964847528,
+   "unparsed": 0,
+   "truncated": 0,
+   "pytest_import_added": 4,
+   "mean_completion_tokens": 387.1333333333333,
+   "mean_seconds": 4.472525759018026
+  }
+ }
+}
