@@ -1,0 +1,27 @@
+# D026: DPO on the model's own pass/fail pairs, same base as weekend 2.
+# Run with testgen.train.dpo (compile off, frozen-layer kernel path, manifest).
+model: mlx-community/Qwen3.5-4B-bf16
+train: true
+train_mode: dpo
+train_type: lora
+data: data/train/dpo                       # train.jsonl / valid.jsonl: {system, prompt, chosen, rejected}
+optimizer: adamw
+num_layers: 16                             # D024: hybrid training path; frozen layers keep the kernel
+batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 5.0e-6                      # DPO: 10–20x below the SFT rate (Rafailov et al. 2023 used 1e-6 full FT; LoRA tolerates ~5e-6)
+beta: 0.1
+dpo_cpo_loss_type: sigmoid
+max_seq_length: 1024                       # both sides; the pair builder drops longer pairs
+grad_checkpoint: true
+iters: 0                                   # set per run = pairs / 1 (one epoch of micro-batches)
+steps_per_report: 10
+steps_per_eval: 100
+val_batches: -1
+save_every: 100
+seed: 0
+adapter_path: models/adapters/dpo-4b
+lora_parameters:
+  rank: 8                                  # research: halve capacity when data is small
+  scale: 2.0                               # = alpha/rank with alpha 16 (mlx-lm semantics: direct multiplier)
+  dropout: 0.05
