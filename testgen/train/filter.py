@@ -12,6 +12,7 @@ budget). Functions with no keeper are dropped.
 Writes data/train/sft/train.jsonl, valid.jsonl   mlx-lm chat format
        data/train/sft/yield.json                  the yield table + oracle stats
        data/train/sft/kept.jsonl                  per-kept-example provenance
+       data/train/sft/scored.jsonl                every candidate's scores (D026 pairs)
 
 Split is 95/5 by *family* (D020 logic), seeded. The assistant turn is the
 filled suite in a python fence, i.e. exactly what extract_suite() expects at
@@ -53,6 +54,7 @@ def score_candidate(text: str, source: str, live: list) -> dict:
     suite, n_tests = enforce_test_budget(suite, MAX_TESTS_PER_SUITE)
     rec = {"parsed": True, "n_tests": min(n_tests, MAX_TESTS_PER_SUITE), **flags}
     rec["valid_before"] = _valid(run_suite(suite, source))
+    rec["suite_unaided"] = suite
     filled, stats, _ = fill(suite, source)
     rec["oracle"] = asdict(stats)
     rec["valid"] = _valid(run_suite(filled, source))
@@ -103,6 +105,8 @@ def main(argv: list[str]) -> int:
     for r in raw:
         by_fn[r["id"]].append(r)
 
+    SFT_DIR.mkdir(parents=True, exist_ok=True)
+    scored_out = (SFT_DIR / "scored.jsonl").open("w")
     scored: dict[str, list[dict]] = {}
     totals: Counter = Counter()
     oracle: Counter = Counter()
@@ -128,6 +132,7 @@ def main(argv: list[str]) -> int:
         if i % 25 == 0:
             print(f"  scored {i}/{len(by_fn)} functions", flush=True)
 
+    scored_out.close()
     kept = []
     for fid, cands in scored.items():
         best = best_per_function(cands)
