@@ -118,6 +118,8 @@ def main(argv: list[str]) -> int:
             c["n_tokens"] = (
                 token_length(tokenizer, to_chat(source, c["suite"])) if c["parsed"] else 0
             )
+            # D026 pairs need every candidate, unaided text included; drop the raw reply.
+            scored_out.write(json.dumps({k: v for k, v in c.items() if k != "text"}) + "\n")
             totals["candidates"] += 1
             totals["parsed"] += c["parsed"]
             totals["valid_before_oracle"] += c.get("valid_before", False)
