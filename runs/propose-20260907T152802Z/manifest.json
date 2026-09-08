@@ -1,0 +1,21 @@
+{
+ "run": "propose-20260907T152802Z",
+ "created": "2026-09-07T15:28:02.275339+00:00",
+ "git_sha": "d005610dd597993027f3d2065c42d2c114ba118d",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "model": "mlx-community/Qwen3.5-4B-4bit",
+ "n_functions": 550,
+ "k": 8,
+ "temperature": 0.7,
+ "batch": 16,
+ "seed": 0,
+ "pool_sha256": "42a494b419de608cf631b6aa444f2bd89cec5709e29981c0037e2e0398bf6ddd",
+ "generations": 4400,
+ "tokens_per_second": 198.9053688426648
+}

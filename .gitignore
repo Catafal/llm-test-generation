@@ -28,3 +28,6 @@ checkpoints/
 .ruff_cache/
 .mypy_cache/
 .DS_Store
+
+# Raw harvest candidates (pre-decontamination); pool.jsonl is the artifact
+data/*/candidates.jsonl
