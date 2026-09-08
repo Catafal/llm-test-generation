@@ -1,0 +1,43 @@
+{
+ "run": "baselines-dev-think4096-20260908T155256Z",
+ "created": "2026-09-08T15:52:56.061796+00:00",
+ "git_sha": "0120f592024c004a5d3576791924d404f3dd76fa",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 4096,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 60,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": null,
+ "thinking": true,
+ "results": {
+  "4b-bf16/zero": {
+   "suites": 58,
+   "valid": 20,
+   "validity_rate": 0.3448275862068966,
+   "false_failure_suites": 36,
+   "mutants_killed": 446,
+   "mutants_live_total": 603,
+   "mean_mutation_score": 0.7993574136010247,
+   "unparsed": 2,
+   "truncated": 2,
+   "pytest_import_added": 2,
+   "mean_completion_tokens": 1454.3166666666666,
+   "mean_seconds": 17.47973904927882,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}
