@@ -4,7 +4,8 @@ Weekend two of `llm-test-generation`. Question: does fine-tuning Qwen3.5-4B
 on its own execution-verified test suites raise suite validity and mutation
 score over zero-shot and few-shot prompting of the same model at equal
 budget? Answer, on 315 post-cutoff held-out functions: **no**. Validity fell
-by 4.1 points (95% CI −9.8 to +1.3) and mutation score on both-valid
+by 4.1 points against zero-shot (95% CI −9.8 to +1.3) and 2.2 points
+against few-shot (CI −8.3 to +3.5); mutation score on both-valid
 functions was unchanged. The interval includes zero, so the effect is
 unresolved at this sample size; the point estimate is negative.
 
@@ -26,19 +27,19 @@ unresolved at this sample size; the point estimate is negative.
 | Arm | Validity | Mutation score, valid suites | Mean tokens | Tests generated | Truncated |
 |---|---|---|---|---|---|
 | bf16 base, zero-shot | 0.438 | 0.862 | 758 | 12.2 | 31 |
-| bf16 base, few-shot | pending | | | | |
+| bf16 base, few-shot | 0.419 | 0.889 | 442 | 6.5 | 1 |
 | 4-bit base, zero-shot (weekend 1) | 0.400 | 0.869 | | | |
 | 4-bit base, best-of-4 + reference filter, first 100 fns | 0.540 | 0.819 | 2649 (4 samples) | | |
 | **Fine-tune, checkpoint 120, zero-shot** | **0.397** | **0.862** | 537 | 8.1 | 15 |
 
-Paired, fine-tune vs bf16 base zero-shot:
+Paired, fine-tune vs bf16 base zero-shot (few-shot in the second column):
 
-| Statistic | Value |
-|---|---|
-| Validity difference (bootstrap 95% CI) | −0.041 [−0.098, +0.013] |
-| Discordant functions (base only / fine-tune only) | 45 / 32 |
-| Exact McNemar p | 0.17 |
-| Mutation score difference on 93 both-valid (CI) | −0.017 [−0.041, +0.003] |
+| Statistic | vs zero-shot | vs few-shot |
+|---|---|---|
+| Validity difference (bootstrap 95% CI) | −0.041 [−0.098, +0.013] | −0.022 [−0.083, +0.035] |
+| Discordant functions (base only / fine-tune only) | 45 / 32 | 50 / 43 |
+| Exact McNemar p | 0.17 | 0.53 |
+| Mutation score difference on both-valid (CI) | −0.017 [−0.041, +0.003] (n=93) | −0.004 [−0.023, +0.011] (n=82) |
 
 Per-category kill rate on the 93 both-valid functions is slightly higher for
 the fine-tune in every category, including the `arith` probe that was held
@@ -50,6 +51,8 @@ fine-tune 42/28/27/28. The fine-tune is lower in every quartile.
 ## What the model learned
 
 - **Brevity.** 8 tests instead of 12, 30% fewer tokens, half the truncations.
+  Few-shot prompting gets the same brevity for free (6.5 tests, 442 tokens)
+  with better validity, so brevity is not what was missing.
 - **More literal assertions.** Share of `== <literal>` asserts rose from
   0.724 to 0.771; membership asserts fell from 0.207 to 0.177.
 - **Not arithmetic.** Nearly every invalid suite in both arms is a false
