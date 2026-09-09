@@ -1,0 +1,43 @@
+{
+ "run": "baselines-dev-q3base171-20260909T131347Z",
+ "created": "2026-09-09T13:13:47.696690+00:00",
+ "git_sha": "9804993674110a1d9581ff8df87c701862f0bc18",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 171,
+ "models": [
+  "mlx-community/Qwen3-4B-Instruct-2507-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": null,
+ "thinking": false,
+ "results": {
+  "q3-4b-bf16/zero": {
+   "suites": 171,
+   "valid": 49,
+   "validity_rate": 0.28654970760233917,
+   "false_failure_suites": 121,
+   "mutants_killed": 824,
+   "mutants_live_total": 1309,
+   "mean_mutation_score": 0.7794983216078198,
+   "unparsed": 0,
+   "truncated": 3,
+   "pytest_import_added": 0,
+   "mean_completion_tokens": 613.0233918128655,
+   "mean_seconds": 6.687866522183734,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}
