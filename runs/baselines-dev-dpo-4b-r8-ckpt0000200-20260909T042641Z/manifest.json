@@ -1,0 +1,43 @@
+{
+ "run": "baselines-dev-dpo-4b-r8-ckpt0000200-20260909T042641Z",
+ "created": "2026-09-09T04:26:41.418114+00:00",
+ "git_sha": "0fba7f261e2c2951332723e6e203d87d72f4b744",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 171,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": "models/adapters/dpo-4b-r8/ckpt-0000200",
+ "thinking": false,
+ "results": {
+  "4b-bf16/zero": {
+   "suites": 171,
+   "valid": 68,
+   "validity_rate": 0.39766081871345027,
+   "false_failure_suites": 100,
+   "mutants_killed": 1197,
+   "mutants_live_total": 1800,
+   "mean_mutation_score": 0.8295492952671946,
+   "unparsed": 0,
+   "truncated": 17,
+   "pytest_import_added": 3,
+   "mean_completion_tokens": 671.1637426900585,
+   "mean_seconds": 11.855675427882376,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}
