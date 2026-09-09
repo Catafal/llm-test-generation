@@ -1,0 +1,29 @@
+# D028 step 2: execution-explanation SFT on the dense base (all layers, seq 2048).
+model: mlx-community/Qwen3-4B-Instruct-2507-bf16
+train: true
+data: data/train/trace/inline              # or data/train/trace/prefix (Jordi's format call)
+fine_tune_type: lora
+optimizer: adamw
+mask_prompt: true
+num_layers: -1                            # dense: all 36 layers (FT7 restored)
+batch_size: 2
+grad_accumulation_steps: 4                # effective batch 8
+learning_rate: 1.0e-4
+lr_schedule:
+  name: cosine_decay
+  warmup: 10
+  arguments: [1.0e-4, 100, 1.0e-6]        # optimizer steps: ~2 epochs of ~350 examples / 8
+iters: 800                                # micro-batches of 2 = 1600 examples = ~4.5 epochs? no: 800 x 2 / 350 = 4.6 -> set per run
+max_seq_length: 2048
+grad_checkpoint: true
+steps_per_report: 20
+steps_per_eval: 100
+val_batches: -1
+save_every: 100
+seed: 0
+adapter_path: models/adapters/trace-q3-4b
+lora_parameters:
+  keys: [self_attn.q_proj, self_attn.k_proj, self_attn.v_proj, self_attn.o_proj, mlp.gate_proj, mlp.up_proj, mlp.down_proj]
+  rank: 8
+  scale: 2.0
+  dropout: 0.05

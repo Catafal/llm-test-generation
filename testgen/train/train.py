@@ -86,6 +86,9 @@ def write_manifest(args) -> None:
 def load_args(argv: list[str]) -> types.SimpleNamespace:
     """Same precedence as mlx_lm.lora.main: CLI > YAML > CONFIG_DEFAULTS."""
     parser: argparse.ArgumentParser = lora.build_parser()
+    parser.add_argument(
+        "--keep-compile", action="store_true", help="dense models: keep mx.compile (faster)"
+    )
     args = vars(parser.parse_args(argv))
     if args.get("config"):
         with open(args["config"]) as f:
@@ -101,7 +104,8 @@ def load_args(argv: list[str]) -> types.SimpleNamespace:
 def main(argv: list[str]) -> int:
     args = load_args(argv)
     write_manifest(args)
-    mx.disable_compile()  # see module docstring, point 4
+    if not args.keep_compile:
+        mx.disable_compile()  # see module docstring, point 4 (Qwen3.5 hybrid only)
 
     def train_model(a, model, train_set, valid_set, cb=None):
         # mlx-lm inserts adapters inside; swap frozen DeltaNet layers first, since

@@ -37,6 +37,9 @@ filter:           ## T3: oracle-fill + execution filter -> data/train/sft/; RUN=
 train-single:     ## T5: one-process LoRA (compile disabled) -> models/adapters/$(RUN)
 	caffeinate -i uv run --group models python -m testgen.train.train -c configs/lora-4b.yaml --adapter-path models/adapters/$(or $(RUN),lora-4b)
 
+train-dense:      ## D028: SFT on the dense base; RUN= DATA=data/train/trace/inline ITERS=
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.train -c configs/lora-q3-4b.yaml --keep-compile --adapter-path models/adapters/$(or $(RUN),trace-q3-4b) $(if $(DATA),--data $(DATA),) $(if $(ITERS),--iters $(ITERS),)
+
 train:            ## T5 fallback: segmented LoRA (mlx-lm#1185) -> models/adapters/$(RUN); RUN=lora-4b-<tag> [START=k]
 	uv run --group models python -m testgen.train.segments --run models/adapters/$(or $(RUN),lora-4b) $(if $(START),--start $(START),)
 
