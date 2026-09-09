@@ -24,6 +24,22 @@ SYSTEM = (
     "- Reply with one ```python code block containing the complete test module and nothing else."
 )
 
+# D028 oracle-shape variant: identical except the assertion rule. The default
+# rule ("assert exact values") demands the one skill the model lacks, predicting
+# outputs; this one asks for oracles it can get right and exact values only
+# where they can be read off the code.
+SYSTEM_SHAPE = SYSTEM.replace(
+    "Assert exact values, not just truthiness.",
+    "Prefer assertions you can be certain of without computing outputs by hand: "
+    "`pytest.raises` for error paths, type/length/shape checks, membership, "
+    "relations between calls (round-trip, idempotence, ordering, monotonicity), "
+    "and comparisons to the result of a simpler equivalent computation. Assert an "
+    "exact value only when it is trivially readable from the code (booleans, None, "
+    "empty results, small integers, short literal strings). Never assert a value "
+    "you would have to work out.",
+)
+STYLES = {"default": SYSTEM, "shape": SYSTEM_SHAPE}
+
 USER = "Write the pytest test module for this function.\n\n```python\n{source}\n```"
 
 _FENCE = re.compile(r"```(?:python)?\s*\n(.*?)```", re.S)
@@ -31,10 +47,13 @@ _OPEN_FENCE = re.compile(r"```(?:python)?\s*\n")
 
 
 def build_messages(
-    source: str, max_tests: int, shots: list[tuple[str, str]] | None = None
+    source: str,
+    max_tests: int,
+    shots: list[tuple[str, str]] | None = None,
+    style: str = "default",
 ) -> list[dict[str, str]]:
     """Chat messages: system, then (user, assistant) per exemplar, then the target."""
-    messages = [{"role": "system", "content": SYSTEM.format(max_tests=max_tests)}]
+    messages = [{"role": "system", "content": STYLES[style].format(max_tests=max_tests)}]
     for shot_source, shot_suite in shots or []:
         messages.append({"role": "user", "content": USER.format(source=shot_source)})
         messages.append({"role": "assistant", "content": f"```python\n{shot_suite}```"})

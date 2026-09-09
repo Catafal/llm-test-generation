@@ -125,8 +125,12 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
         if tag == "bestof":
             gens = [None] * len(chunk)
         else:
+            style = "shape" if tag == "shape" else "default"
             gens = backend.generate_many(
-                [build_messages(r["source"], MAX_TESTS_PER_SUITE, shots) for r in chunk]
+                [
+                    build_messages(r["source"], MAX_TESTS_PER_SUITE, shots, style=style)
+                    for r in chunk
+                ]
             )
         for row, g in zip(chunk, gens, strict=True):
             rec = {"id": row["id"], "condition": tag, "model": backend.model_id}
@@ -160,7 +164,11 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pool", choices=["pilot", "test", "dev"], default="pilot")
     ap.add_argument("--models", default="9b,4b,coder7b")
-    ap.add_argument("--conditions", default="zero,few", help="zero, few, bestof (ceiling row)")
+    ap.add_argument(
+        "--conditions",
+        default="zero,few",
+        help="zero, few, bestof (ceiling row), shape (D028 oracle-shape prompt)",
+    )
     ap.add_argument("--limit", type=int, default=0, help="first N functions of the pool only")
     ap.add_argument("--adapter", default="", help="LoRA adapter dir applied to every model")
     ap.add_argument("--tag", default="", help="run-name suffix, e.g. the checkpoint id")
