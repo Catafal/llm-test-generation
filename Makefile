@@ -29,28 +29,28 @@ derisk:           ## D023 de-risk: 4B self-samples, rejection vs oracle-fill on 
 	uv run --group models python -m testgen.train.derisk --n $(or $(N),40) --k $(or $(K),4) --batch $(or $(BATCH),16)
 
 propose:          ## T2: 4B self-samples K per training fn; K=8 BATCH=16 [RESUME=runs/propose-*]
-	uv run --group models python -m testgen.train.propose --k $(or $(K),8) --batch $(or $(BATCH),16) $(if $(RESUME),--resume $(RESUME),)
+	caffeinate -i uv run --group models python -m testgen.train.propose --k $(or $(K),8) --batch $(or $(BATCH),16) $(if $(RESUME),--resume $(RESUME),)
 
 filter:           ## T3: oracle-fill + execution filter -> data/train/sft/; RUN=runs/propose-*
 	uv run --group models python -m testgen.train.filter --run $(RUN)
 
 train-single:     ## T5: one-process LoRA (compile disabled) -> models/adapters/$(RUN)
-	uv run --group models python -m testgen.train.train -c configs/lora-4b.yaml --adapter-path models/adapters/$(or $(RUN),lora-4b)
+	caffeinate -i uv run --group models python -m testgen.train.train -c configs/lora-4b.yaml --adapter-path models/adapters/$(or $(RUN),lora-4b)
 
 train:            ## T5 fallback: segmented LoRA (mlx-lm#1185) -> models/adapters/$(RUN); RUN=lora-4b-<tag> [START=k]
 	uv run --group models python -m testgen.train.segments --run models/adapters/$(or $(RUN),lora-4b) $(if $(START),--start $(START),)
 
 devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run>
-	uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60)
+	caffeinate -i uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60)
 
 pairs:            ## D026: preference pairs from data/train/sft/scored.jsonl -> data/train/dpo/
 	HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.pairs
 
 dpo:              ## D026: DPO with mlx-lm-lora -> models/adapters/$(RUN); ITERS= (one epoch = pairs)
-	HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.dpo -c configs/dpo-4b.yaml --adapter-path models/adapters/$(or $(RUN),dpo-4b) $(if $(ITERS),--iters $(ITERS),)
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.dpo -c configs/dpo-4b.yaml --adapter-path models/adapters/$(or $(RUN),dpo-4b) $(if $(ITERS),--iters $(ITERS),)
 
 baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b [LIMIT= ADAPTER= TAG= CONDITIONS=]
-	uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),) $(if $(THINKING),--thinking,)
+	caffeinate -i uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),) $(if $(THINKING),--thinking,)
 
 harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
 	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)
