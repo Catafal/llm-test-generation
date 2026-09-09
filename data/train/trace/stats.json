@@ -1,0 +1,9 @@
+{
+ "functions": 373,
+ "traced_asserts": 1068,
+ "with_trace": 289,
+ "train": 358,
+ "valid": 15,
+ "max_asserts": 4,
+ "max_lines": 6
+}
