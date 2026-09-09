@@ -95,11 +95,43 @@ checkpoint selection (D020 revisit triggered).
 - Equivalent mutants: bytecode filter only; hand-labelling pending.
 - "Post-cutoff" is a margin, not a proof (year-only cutoff).
 
+## Iteration 2: preference learning on the model's own pass/fail pairs (2026-09-09)
+
+Same base, one variable changed: the signal. 497 pairs from 303 training
+functions (chosen = passed unaided and killed ≥1 mutant; rejected = the
+same function's failing suite, oracle-rescued killing suites first), DPO
+with `mlx-lm-lora` (rank 8, last 16 layers, beta 0.1, lr 5e-6, 2 epochs,
+117 optimizer steps), checkpoint chosen on all 171 dev functions.
+
+| Arm | Validity | Mutation score, valid suites | Mean tokens |
+|---|---|---|---|
+| bf16 base, zero-shot | 0.438 | 0.862 | 758 |
+| bf16 base, few-shot | 0.419 | 0.889 | 442 |
+| SFT (iteration 1), checkpoint 120 | 0.397 | 0.862 | 537 |
+| **DPO (iteration 2), checkpoint 900** | **0.441** | **0.874** | 548 |
+
+Paired, DPO vs zero-shot: validity +0.003 [−0.048, +0.051], p = 1.00;
+mutation score on 105 both-valid +0.012 [−0.002, +0.028]. Vs few-shot:
++0.022 [−0.035, +0.076], p = 0.49. Vs SFT: +0.044 [−0.013, +0.098],
+p = 0.13. Dev-171: base 0.40; checkpoints 0.374–0.415. During training,
+accuracy on 27 held-out pairs stayed at chance (0.44–0.61) while training
+accuracy reached 0.9.
+
+Reading: DPO removed the SFT harm (assertion mix back to the base's,
+literal-eq 0.721; false failures 176/315, identical to the base) and kept
+brevity, but did not raise validity. Telling a right literal from a wrong
+one for the same input needs the computation the model lacks, so the
+preference signal did not generalise even to unseen pairs. Two clean nulls
+now bracket the same conclusion: any recipe that leaves the model guessing
+expected values in one forward pass is capped near the base rate.
+
 ## Next hypothesis
 
-Teach assertion strategies the model can compute rather than literals it
-cannot: keep only targets whose literals were already correct unaided, or
-reweight toward relational and round-trip assertions; one epoch, rank 8;
-select on all 171 dev functions.
+Change the target format, not the signal or the volume: execution-explanation
+targets (a short natural-language trace of what the code does on the input,
+then the assert), the one lever with measured evidence at 3B (Qwen2.5-3B
+CRUXEval-O 37.5 → 68.0, arXiv 2604.03253), on a dense base that trains long
+targets (Qwen3-4B-2507: 120 tok/s, all layers, 2048 tokens, 10.5 GB). The
+open question is the low-data regime.
 
 Every number traces to a manifest under `runs/` or `models/adapters/`.
