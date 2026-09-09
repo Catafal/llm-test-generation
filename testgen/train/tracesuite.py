@@ -32,25 +32,50 @@ class TraceStats:
     trace_lines: list[int] = field(default_factory=list)
 
 
-def _call_for(node: ast.Assert, fn_body: list[ast.stmt], target: str) -> str | None:
-    """The call expression behind the assert's left side, or None."""
-    left = node.test.left
-    if isinstance(left, ast.Call) and target in ast.unparse(left.func):
-        return ast.unparse(left)
-    if isinstance(left, ast.Name):  # result = f(...); assert result == ...
-        for stmt in fn_body:
-            if stmt is node:
-                break
-            if (
-                isinstance(stmt, ast.Assign)
-                and len(stmt.targets) == 1
-                and isinstance(stmt.targets[0], ast.Name)
-                and stmt.targets[0].id == left.id
-                and isinstance(stmt.value, ast.Call)
-                and target in ast.unparse(stmt.value.func)
-            ):
-                return ast.unparse(stmt.value)
-    return None
+def _calls_target(expr: ast.AST, target: str) -> bool:
+    return any(isinstance(n, ast.Call) and target in ast.unparse(n.func) for n in ast.walk(expr))
+
+
+class _Substitute(ast.NodeTransformer):
+    """Replace local names with the expressions they were assigned from."""
+
+    def __init__(self, bindings: dict[str, ast.expr]) -> None:
+        self.bindings = bindings
+
+    def visit_Name(self, node: ast.Name) -> ast.AST:
+        if isinstance(node.ctx, ast.Load) and node.id in self.bindings:
+            return self.bindings[node.id]
+        return node
+
+
+def _bindings(module: ast.Module, fn: ast.FunctionDef, before: int) -> dict[str, ast.expr]:
+    """name -> assigned expression, for module-level constants and locals set before ``before``."""
+    out: dict[str, ast.expr] = {}
+    stmts = [st for st in module.body if isinstance(st, ast.Assign)]
+    stmts += [st for st in ast.walk(fn) if isinstance(st, ast.Assign) and st.lineno < before]
+    for stmt in sorted(stmts, key=lambda st: st.lineno):
+        if len(stmt.targets) == 1 and isinstance(stmt.targets[0], ast.Name):
+            out[stmt.targets[0].id] = stmt.value
+    return out
+
+
+def _call_for(node: ast.Assert, fn: ast.FunctionDef, module: ast.Module, target: str) -> str | None:
+    """The self-contained expression to trace behind the assert's left side, or None.
+
+    Locals and module constants referenced by the left side are replaced by
+    the expressions they were assigned from (to a fixed point), so
+    ``row = {...}; r = f(row); assert r['k'] == 1`` traces ``f({...})['k']``.
+    Anything still unresolved (helpers, fixtures) fails in the probe and is
+    reported as untraceable.
+    """
+    bindings = _bindings(module, fn, node.lineno)
+    expr = ast.parse(ast.unparse(node.test.left), mode="eval").body
+    for _ in range(4):  # bounded fixed point over chained assignments
+        new = _Substitute(bindings).visit(ast.parse(ast.unparse(expr), mode="eval").body)
+        if ast.unparse(new) == ast.unparse(expr):
+            break
+        expr = new
+    return ast.unparse(expr) if _calls_target(expr, target) else None
 
 
 def _is_site(node: ast.AST) -> bool:
@@ -79,19 +104,18 @@ def trace_sites(
             if not _is_site(node):
                 continue
             stats.sites += 1
-            call = _call_for(node, fn.body, target)
+            call = _call_for(node, fn, tree, target)
             if call is None:
                 stats.skipped_untraceable += 1
                 continue
             if len(out) >= max_asserts:
                 stats.skipped_cap += 1
                 continue
-            # The suite imports `target` from solution; the probe imports solution.
-            tr = trace_call(source, "solution." + call.replace(target + "(", target + "(", 1))
+            tr = trace_call(source, call)
             if tr.error and not tr.steps:
                 stats.skipped_untraceable += 1
                 continue
-            block = render(source, tr, max_lines=max_lines).replace("solution.", "", 1)
+            block = render(source, tr, max_lines=max_lines)
             stats.traced += 1
             stats.trace_lines.append(block.count("\n") + 1)
             out.append((node.lineno, block))

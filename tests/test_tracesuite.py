@@ -24,6 +24,11 @@ def test_via_local():
     assert result == 10
 
 
+def test_via_subscript():
+    pair = (clamp(7, 0, 5), 1)
+    assert pair[0] == 5
+
+
 def test_relational():
     assert clamp(3, 0, 10) <= 10
 """
@@ -31,8 +36,8 @@ def test_relational():
 
 def test_trace_sites_and_inline():
     sites, stats = trace_sites(SUITE, REF, "clamp")
-    assert stats.sites == 2 and stats.traced == 2
-    assert [ln for ln, _ in sites] == [5, 10]
+    assert stats.sites == 3 and stats.traced == 3
+    assert [ln for ln, _ in sites] == [5, 10, 15]
     out = inline_target(SUITE, sites)
     assert "# clamp(-5, 0, 10)" in out and "#   returns 0" in out
     assert "# clamp(50, 0, 10)" in out and "#   returns 10" in out
@@ -47,6 +52,6 @@ def test_trace_sites_and_inline():
 
 def test_caps_and_prefix():
     sites, stats = trace_sites(SUITE, REF, "clamp", max_asserts=1)
-    assert stats.traced == 1 and stats.skipped_cap == 1
+    assert stats.traced == 1 and stats.skipped_cap == 2
     out = prefix_target(SUITE, sites)
     assert out.startswith("<derivation>\n# clamp(-5, 0, 10)") and out.endswith("```")

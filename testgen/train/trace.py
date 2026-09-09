@@ -26,6 +26,8 @@ MAX_REPR = 60
 # Runs inside the sandbox as a pytest "suite": traces the call, writes JSON.
 _PROBE = """import json, sys, reprlib
 import solution
+# every name incl. private ones, so suite expressions evaluate as written
+globals().update({{k: v for k, v in vars(solution).items() if not k.startswith("__")}})
 
 _r = reprlib.Repr(); _r.maxstring = {max_repr}; _r.maxother = {max_repr}
 _steps = []
@@ -71,7 +73,12 @@ class Trace:
 
 
 def trace_call(source: str, call: str, max_steps: int = 400) -> Trace:
-    """Execute ``call`` (e.g. ``"f(3, 4)"``) against ``source`` in the sandbox."""
+    """Execute ``call`` against ``source`` in the sandbox.
+
+    ``call`` is any expression as it appears in a suite, e.g. ``"f(3, 4)"`` or
+    ``"len(f([1, 2]))"``; the probe star-imports ``solution`` so bare names
+    resolve, and only lines inside ``solution`` are traced.
+    """
     probe = _PROBE.format(call=call, max_repr=MAX_REPR, max_steps=max_steps, trace_file=TRACE_FILE)
     run = run_suite(probe, source, collect=(TRACE_FILE,))
     raw = run.artifacts.get(TRACE_FILE)
