@@ -44,7 +44,7 @@ train:            ## T5 fallback: segmented LoRA (mlx-lm#1185) -> models/adapter
 	uv run --group models python -m testgen.train.segments --run models/adapters/$(or $(RUN),lora-4b) $(if $(START),--start $(START),)
 
 devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run>
-	caffeinate -i uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60)
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60) --model $(or $(MODEL),4b-bf16)
 
 pairs:            ## D026: preference pairs from data/train/sft/scored.jsonl -> data/train/dpo/
 	HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.pairs
@@ -80,4 +80,4 @@ clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the poo
 	rm -rf .cache/harvest
 
 eval:             ## T6: fine-tuned 4B zero-shot on the test split; ADAPTER=models/adapters/<run>/ckpt-NNNNNNN
-	uv run --group models python -m testgen.baselines --pool test --models 4b-bf16 --conditions zero --adapter $(ADAPTER) --tag finetune
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.baselines --pool test --models $(or $(MODEL),4b-bf16) --conditions zero --adapter $(ADAPTER) --tag finetune
