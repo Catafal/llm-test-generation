@@ -1,0 +1,59 @@
+{
+ "run": "baselines-test-q3base-20260909T115212Z",
+ "created": "2026-09-09T11:52:12.289863+00:00",
+ "git_sha": "dd5c2ef503b60e98629acd9f378555dd9475601d",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "test",
+ "n_functions": 315,
+ "models": [
+  "mlx-community/Qwen3-4B-Instruct-2507-bf16"
+ ],
+ "conditions": [
+  "zero",
+  "few"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": null,
+ "thinking": false,
+ "results": {
+  "q3-4b-bf16/zero": {
+   "suites": 315,
+   "valid": 109,
+   "validity_rate": 0.346031746031746,
+   "false_failure_suites": 205,
+   "mutants_killed": 2299,
+   "mutants_live_total": 2818,
+   "mean_mutation_score": 0.869602036638904,
+   "unparsed": 0,
+   "truncated": 5,
+   "pytest_import_added": 0,
+   "mean_completion_tokens": 613.4984126984127,
+   "mean_seconds": 6.618141933212367,
+   "mean_thinking_tokens": 0.0
+  },
+  "q3-4b-bf16/few": {
+   "suites": 315,
+   "valid": 116,
+   "validity_rate": 0.3682539682539683,
+   "false_failure_suites": 199,
+   "mutants_killed": 2411,
+   "mutants_live_total": 2984,
+   "mean_mutation_score": 0.8933829325500822,
+   "unparsed": 0,
+   "truncated": 2,
+   "pytest_import_added": 4,
+   "mean_completion_tokens": 428.63174603174605,
+   "mean_seconds": 5.933133615074044,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}
