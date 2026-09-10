@@ -1,0 +1,38 @@
+{
+ "run": "baselines-test-bf16base-grounded-20260910T203314Z",
+ "created": "2026-09-10T20:33:14.878191+00:00",
+ "git_sha": "916bc56815c7c86a97ff046c7af28581359f0af3",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "rescored_from": "baselines-test-bf16base-20260908T122005Z",
+ "pool": "test",
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "zero",
+  "few"
+ ],
+ "adapter": null,
+ "grounded": true,
+ "results": {
+  "zero": {
+   "suites": 315,
+   "valid": 138,
+   "validity_rate": 0.4380952380952381,
+   "false_failure_suites": 176,
+   "mutants_killed": 3213,
+   "mutants_live_total": 4349,
+   "mean_mutation_score": 0.8503870224663775,
+   "mean_grounded_score": 0.6043672910954587,
+   "grounded_validity_rate": 0.7174603174603175,
+   "grounded_mean_mutation_score": 0.8423703393587146,
+   "grounded_literals_replaced": 412
+  }
+ }
+}
