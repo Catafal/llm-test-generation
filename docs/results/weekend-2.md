@@ -125,13 +125,51 @@ preference signal did not generalise even to unseen pairs. Two clean nulls
 now bracket the same conclusion: any recipe that leaves the model guessing
 expected values in one forward pass is capped near the base rate.
 
+## Iteration 3: execution-explanation targets on a dense base (2026-09-10)
+
+Two variables changed with a stated reason: base to dense
+`Qwen3-4B-Instruct-2507` (the hybrid stack caps training at 1,024 tokens;
+new baselines run), and the target format: the model's own unaided-valid
+suites with a scratchpad comment block above each literal assert, rendered
+from a real execution trace in the sandbox (`testgen/train/trace.py`,
+`tracesuite.py`; cap 4 asserts, 6 lines). 358 train examples, all 36
+layers, rank 8, sequence 2,048, 2 epochs; checkpoint 250 chosen on dev-171
+(0.468 vs the dense base's 0.29).
+
+| Arm (dense base), test n=315 | Validity | Mutation score, valid suites | Tests generated | Tokens | Truncated |
+|---|---|---|---|---|---|
+| zero-shot | 0.346 | 0.870 | 8.4 | 613 | 5 |
+| few-shot | 0.368 | 0.893 | | 429 | 2 |
+| **trace-target SFT, ckpt 250** | **0.400** | **0.763** | 6.7 | 1,270 | 83 |
+
+Paired vs zero-shot: validity +0.054 [−0.010, +0.114], p = 0.11; mutation
+score on 66 both-valid −0.070 [−0.131, −0.010]. Vs few-shot: +0.032,
+p = 0.39; mutation −0.101.
+
+Mechanism, measured on the raw generations: 261 of 315 suites contain
+derivations, about five each, 60% of the tokens; per-test false-failure rate
+0.267 for tests *with* a derivation vs 0.251 without. The model learned to
+write fluent, trace-shaped derivations that are invented, and to write fewer
+tests; 37 of the 83 truncated suites are valid because truncation removed
+tests. The validity gain is brevity, the kill-rate loss is the same brevity.
+
+## What three iterations settle
+
+Three signals (execution-corrected literals, the model's own pass/fail
+preferences, execution-grounded derivations), two bases, one metric, and
+per-assert value accuracy never moved. At a few hundred examples with LoRA,
+a 4B model does not acquire execution prediction; the one published success
+at 3B used ~80M traces. The bottleneck is a base-model capability, not a
+recipe choice within this budget. The recipe, harness, decontaminated pools
+and paired evaluation are the deliverable; the negative result is measured
+at every step.
+
 ## Next hypothesis
 
-Change the target format, not the signal or the volume: execution-explanation
-targets (a short natural-language trace of what the code does on the input,
-then the assert), the one lever with measured evidence at 3B (Qwen2.5-3B
-CRUXEval-O 37.5 → 68.0, arXiv 2604.03253), on a dense base that trains long
-targets (Qwen3-4B-2507: 120 tok/s, all layers, 2048 tokens, 10.5 GB). The
-open question is the low-data regime.
+Outside this project's budget: trace-explanation pretraining at scale
+(millions of traced functions), or a base that already predicts outputs
+(CRUXEval-O ≥ 70). Inside it: change the task so correctness does not
+require predicting outputs (execution-grounded expected values at authoring
+time), which is a product decision rather than a training one.
 
 Every number traces to a manifest under `runs/` or `models/adapters/`.
