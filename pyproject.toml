@@ -26,6 +26,7 @@ conflicts = [[{ group = "models" }, { group = "decontam" }]]
 # Generation (T6+) and training: mlx-lm pulls transformers 5.
 models = [
     "mlx-lm>=0.31.1",
+    "mlx-lm-lora>=3.1.2",
 ]
 # Layer-2 decontamination only; heavy (torch). Conflicts with `models`.
 decontam = [
