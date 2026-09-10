@@ -7,7 +7,9 @@ checkpoint directory ``ckpt-NNNNNNN/`` is created (adapter_config.json copied,
 weights symlinked) so mlx-lm can load it, then the evaluator runs zero-shot on
 the first ``--limit`` dev functions under the eval budget. Results go to
 ``<run>/devcurve.json``; the best checkpoint by validity (ties: mutation
-score) is named there. Validation loss is logged by the trainer but is not
+score) is named there. With ``--grounded`` (D030) the evaluator also
+oracle-fills, and the best checkpoint is the one with the highest mean
+grounded score. Validation loss is logged by the trainer but is not
 the selection signal.
 """
 
@@ -43,6 +45,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--run", required=True)
     ap.add_argument("--limit", type=int, default=60)
     ap.add_argument("--model", default="4b-bf16")
+    ap.add_argument("--grounded", action="store_true", help="D030: select by grounded score")
     args = ap.parse_args(argv)
     run = Path(args.run)
     curve_path = run / "devcurve.json"
@@ -65,6 +68,7 @@ def main(argv: list[str]) -> int:
                 str(d),
                 "--tag",
                 f"{run.name}-ckpt{step}",
+                *(["--grounded"] if args.grounded else []),
             ]
         )
         latest = max(RUNS_DIR.glob(f"baselines-dev-{run.name}-ckpt{step}-*"))
@@ -73,9 +77,13 @@ def main(argv: list[str]) -> int:
             "run": latest.name,
             "validity": res["validity_rate"],
             "mutation_score": res["mean_mutation_score"],
+            "grounded_score": res.get("mean_grounded_score"),
         }
         curve_path.write_text(json.dumps(curve, indent=1))
-    best = max(curve, key=lambda s: (curve[s]["validity"], curve[s]["mutation_score"]))
+    if args.grounded:
+        best = max(curve, key=lambda s: curve[s]["grounded_score"] or 0.0)
+    else:
+        best = max(curve, key=lambda s: (curve[s]["validity"], curve[s]["mutation_score"]))
     curve_path.write_text(json.dumps({**curve, "best": best}, indent=1))
     print(json.dumps(curve, indent=1), f"\nbest checkpoint: {best}")
     return 0

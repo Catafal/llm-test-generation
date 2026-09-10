@@ -43,14 +43,14 @@ train-dense:      ## D028: SFT on the dense base; RUN= DATA=data/train/trace/inl
 train:            ## T5 fallback: segmented LoRA (mlx-lm#1185) -> models/adapters/$(RUN); RUN=lora-4b-<tag> [START=k]
 	uv run --group models python -m testgen.train.segments --run models/adapters/$(or $(RUN),lora-4b) $(if $(START),--start $(START),)
 
-devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run>
-	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60) --model $(or $(MODEL),4b-bf16)
+devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run> [GROUNDED=1]
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60) --model $(or $(MODEL),4b-bf16) $(if $(GROUNDED),--grounded,)
 
-pairs:            ## D026: preference pairs from data/train/sft/scored.jsonl -> data/train/dpo/
-	HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.pairs
+pairs:            ## D026: preference pairs from data/train/sft/scored.jsonl -> data/train/dpo/ [GROUNDED=1 -> dpo-grounded/]
+	HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.pairs $(if $(GROUNDED),--grounded,)
 
 dpo:              ## D026: DPO with mlx-lm-lora -> models/adapters/$(RUN); ITERS= (one epoch = pairs)
-	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.dpo -c configs/dpo-4b.yaml --adapter-path models/adapters/$(or $(RUN),dpo-4b) $(if $(ITERS),--iters $(ITERS),)
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.dpo -c configs/dpo-4b.yaml --adapter-path models/adapters/$(or $(RUN),dpo-4b) $(if $(ITERS),--iters $(ITERS),) $(if $(DATA),--data $(DATA),)
 
 baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b [LIMIT= ADAPTER= TAG= CONDITIONS=]
 	caffeinate -i uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),) $(if $(THINKING),--thinking,)
@@ -79,5 +79,5 @@ models-rm:        ## delete models: KEYS="4b" or ALL=1 to free everything
 clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the pool is frozen)
 	rm -rf .cache/harvest
 
-eval:             ## T6: fine-tuned 4B zero-shot on the test split; ADAPTER=models/adapters/<run>/ckpt-NNNNNNN
-	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.baselines --pool test --models $(or $(MODEL),4b-bf16) --conditions zero --adapter $(ADAPTER) --tag finetune
+eval:             ## T6: fine-tuned 4B zero-shot on the test split; ADAPTER=models/adapters/<run>/ckpt-NNNNNNN [GROUNDED=1]
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.baselines --pool test --models $(or $(MODEL),4b-bf16) --conditions zero --adapter $(ADAPTER) --tag finetune $(if $(GROUNDED),--grounded,)

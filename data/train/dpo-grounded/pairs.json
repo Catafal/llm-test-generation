@@ -1,0 +1,16 @@
+{
+ "functions": 550,
+ "functions_with_pairs": 369,
+ "pairs": 645,
+ "rejected_oracle_rescued": 108,
+ "rejected_invalid_after_fill": 536,
+ "chosen_kills_total": 11180,
+ "rejected_kills_total": 1657,
+ "rejected_weak": 108,
+ "rejected_zero_kills": 1,
+ "train": 609,
+ "valid": 36,
+ "max_train_tokens": 1024,
+ "pairs_per_function": 2,
+ "grounded": true
+}

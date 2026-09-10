@@ -13,6 +13,15 @@ A pair is (same function, same prompt):
   rejected  parsed but failed on the reference. Preferred order:
             (1) "good tests, wrong values": rescued by the oracle and killing
                 (the exact failure mode), (2) any other parsed failure.
+--grounded (D030): the harness fills the values at inference, so the pair
+targets what the model still owns, inputs and structure:
+  chosen    valid AFTER oracle fill with the most training-category kills
+            (ties: fewer tests); the assistant turn is still the UNAIDED
+            text the model wrote, never the corrected one (D025 lesson).
+  rejected  (1) parsed but invalid after fill (bad inputs, wrong arity,
+            wrong non-literal asserts), (2) valid with zero kills, (3) the
+            weakest valid candidate if it kills at least GROUNDED_KILL_GAP
+            fewer mutants than the chosen. Output dir data/train/dpo-grounded/.
 Both sides must fit MAX_TRAIN_TOKENS. At most PAIRS_PER_FUNCTION per
 function, distinct chosen/rejected where possible, so no function dominates.
 Record format follows mlx_lm_lora.trainer.datasets.DPODataset:
@@ -34,8 +43,10 @@ from testgen.train.propose import load_pool
 
 SCORED = ROOT / "data" / "train" / "sft" / "scored.jsonl"
 DPO_DIR = ROOT / "data" / "train" / "dpo"
+DPO_GROUNDED_DIR = ROOT / "data" / "train" / "dpo-grounded"
 PAIRS_PER_FUNCTION = 2
 VALID_FRACTION = 0.05
+GROUNDED_KILL_GAP = 2  # a "weak" rejected must trail the chosen by this many kills
 
 
 def fence(suite: str) -> str:
@@ -71,10 +82,43 @@ def build_pairs(cands: list[dict], tokenizer, system: str, prompt: str) -> list[
     return pairs
 
 
+def _grounded_rejected_type(c: dict) -> int:
+    """0 invalid after fill, 1 valid but kills nothing, 2 valid and weak."""
+    if not c.get("valid"):
+        return 0
+    return 1 if c.get("kills", 0) == 0 else 2
+
+
+def build_pairs_grounded(
+    cands: list[dict], tokenizer, system: str, prompt: str
+) -> list[tuple[dict, dict]]:
+    parsed = [c for c in cands if c.get("parsed")]
+    parsed = [c for c in parsed if _fits(tokenizer, system, prompt, c["suite_unaided"])]
+    chosen = sorted(
+        (c for c in parsed if c.get("valid") and c.get("kills", 0) > 0),
+        key=lambda c: (-c["kills"], c["n_tests"]),
+    )
+    if not chosen:
+        return []
+    top_kills = chosen[0]["kills"]
+    rejected = [
+        c
+        for c in parsed
+        if c is not chosen[0]
+        and (_grounded_rejected_type(c) < 2 or c["kills"] <= top_kills - GROUNDED_KILL_GAP)
+    ]
+    rejected.sort(key=lambda c: (_grounded_rejected_type(c), c.get("kills", 0)))
+    return [
+        (chosen[i], rejected[i]) for i in range(min(PAIRS_PER_FUNCTION, len(chosen), len(rejected)))
+    ]
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=20260908)
+    ap.add_argument("--grounded", action="store_true", help="D030 pairs -> dpo-grounded/")
     args = ap.parse_args(argv)
+    out_dir = DPO_GROUNDED_DIR if args.grounded else DPO_DIR
     from transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(MODELS["4b-bf16"])
@@ -89,12 +133,18 @@ def main(argv: list[str]) -> int:
     for fid, cands in by_fn.items():
         msgs = build_messages(pool[fid]["source"], MAX_TESTS_PER_SUITE, None)
         system, prompt = msgs[0]["content"], msgs[-1]["content"]
-        pairs = build_pairs(cands, tokenizer, system, prompt)
+        builder = build_pairs_grounded if args.grounded else build_pairs
+        pairs = builder(cands, tokenizer, system, prompt)
         stats["functions"] += 1
         stats["functions_with_pairs"] += bool(pairs)
         for ch, rj in pairs:
             stats["pairs"] += 1
             stats["rejected_oracle_rescued"] += bool(rj.get("valid") and rj.get("kills", 0) > 0)
+            if args.grounded:
+                kind = ("invalid_after_fill", "zero_kills", "weak")[_grounded_rejected_type(rj)]
+                stats[f"rejected_{kind}"] += 1
+                stats["chosen_kills_total"] += ch["kills"]
+                stats["rejected_kills_total"] += rj.get("kills", 0)
             records.append(
                 {
                     "id": fid,
@@ -110,8 +160,8 @@ def main(argv: list[str]) -> int:
     rng = random.Random(args.seed)
     rng.shuffle(families)
     valid_fams = set(families[: max(1, round(len(families) * VALID_FRACTION))])
-    DPO_DIR.mkdir(parents=True, exist_ok=True)
-    with (DPO_DIR / "train.jsonl").open("w") as tr, (DPO_DIR / "valid.jsonl").open("w") as va:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with (out_dir / "train.jsonl").open("w") as tr, (out_dir / "valid.jsonl").open("w") as va:
         for r in records:
             out = {k: r[k] for k in ("system", "prompt", "chosen", "rejected")}
             (va if r["family"] in valid_fams else tr).write(json.dumps(out) + "\n")
@@ -119,7 +169,8 @@ def main(argv: list[str]) -> int:
     stats["valid"] = len(records) - stats["train"]
     stats["max_train_tokens"] = MAX_TRAIN_TOKENS
     stats["pairs_per_function"] = PAIRS_PER_FUNCTION
-    (DPO_DIR / "pairs.json").write_text(json.dumps(dict(stats), indent=1))
+    stats["grounded"] = args.grounded
+    (out_dir / "pairs.json").write_text(json.dumps(dict(stats), indent=1))
     print(json.dumps(dict(stats), indent=1))
     return 0
 
