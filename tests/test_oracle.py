@@ -57,6 +57,14 @@ def test_fill_skips_long_values():
     assert "== 1\n" in filled
 
 
+def test_fill_without_cap_rewrites_long_values():
+    """D030: evaluation passes max_repr=None; the harness owns the value."""
+    suite = "from solution import area\n\ndef test_big():\n    assert area(10**45, 3) == 1\n"
+    filled, stats, _ = fill(suite, REF, max_repr=None)
+    assert stats.replaced == 1 and stats.too_long == 0
+    assert f"== {3 * 10**45}\n" in filled
+
+
 def test_fill_survives_crashing_expression():
     suite = (
         "from solution import area\n\n"

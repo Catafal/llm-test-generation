@@ -1,6 +1,7 @@
 """Paired comparisons between arms on the same functions (FT15, D015).
 
     uv run python -m testgen.stats runs/baselines-test-<id>/outputs.jsonl 9b/zero 4b/zero
+    uv run python -m testgen.stats --grounded <outputs.jsonl> 4b/zero 4b/few   # D030
 
 Every arm scores the same functions, so comparisons are within-subject:
 - validity: paired binary outcome -> McNemar (exact binomial on discordant
@@ -8,6 +9,11 @@ Every arm scores the same functions, so comparisons are within-subject:
 - mutation score: computed over functions where *both* arms are valid,
   paired bootstrap CI on the mean difference (so the comparison is not
   confounded by which functions each arm happened to get valid).
+- grounded (D030, ``--grounded``): validity and mutation score are read from
+  the oracle-filled suite (``record["grounded"]``), and the primary row is
+  the paired bootstrap CI on the mean *grounded score* difference over ALL
+  functions (0 for an invalid or unparsed suite), so the comparison is not
+  conditioned on validity.
 Pure Python; no scipy.
 """
 
@@ -38,12 +44,27 @@ def _short(model_id: str) -> str:
     return name
 
 
+GROUNDED = False  # set by --grounded: read scores from the oracle-filled suite
+
+
+def _sc(r: dict) -> dict | None:
+    if GROUNDED:
+        return r["grounded"]["score"] if r.get("grounded") else None
+    return r.get("score")
+
+
 def _valid(r: dict) -> bool:
-    return bool(r["parsed"] and r["score"] and r["score"]["valid"])
+    s = _sc(r)
+    return bool(r["parsed"] and s and s["valid"])
 
 
 def _score(r: dict) -> float | None:
-    return r["score"]["mutation_score"] if _valid(r) else None
+    return _sc(r)["mutation_score"] if _valid(r) else None
+
+
+def _grounded_score(r: dict) -> float:
+    """D030 primary metric: mutation score, 0 if invalid or unparsed."""
+    return _score(r) or 0.0
 
 
 def mcnemar_exact(b: int, c: int) -> float:
@@ -89,10 +110,20 @@ def compare(a: dict[str, dict], b: dict[str, dict], name_a: str, name_b: str) ->
         d = [_score(a[i]) - _score(b[i]) for i in both]
         s_mean, s_lo, s_hi = paired_bootstrap(d)
         out["mutation_score_diff_on_both_valid"] = {"mean": s_mean, "ci95": [s_lo, s_hi]}
+    if GROUNDED:
+        ga = [_grounded_score(a[i]) for i in ids]
+        gb = [_grounded_score(b[i]) for i in ids]
+        g_mean, g_lo, g_hi = paired_bootstrap([x - y for x, y in zip(ga, gb, strict=True)])
+        out["grounded_score"] = {name_a: sum(ga) / len(ids), name_b: sum(gb) / len(ids)}
+        out["grounded_score_diff_all_functions"] = {"mean": g_mean, "ci95": [g_lo, g_hi]}
     return out
 
 
 def main(argv: list[str]) -> int:
+    global GROUNDED  # noqa: PLW0603  (one flag, read by three tiny helpers)
+    if "--grounded" in argv:
+        GROUNDED = True
+        argv = [a for a in argv if a != "--grounded"]
     path, name_a, name_b = argv
     arms = load_arms(path)
     print(json.dumps(compare(arms[name_a], arms[name_b], name_a, name_b), indent=1))

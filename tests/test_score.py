@@ -1,5 +1,5 @@
 from testgen.harness.runner import RunResult, TestResult
-from testgen.harness.score import aggregate, mutant_killed, score_suite
+from testgen.harness.score import aggregate, grounded_score, mutant_killed, score_suite
 
 
 def ok(*outcomes: str) -> RunResult:
@@ -56,3 +56,12 @@ def test_aggregate_reports_denominators():
     assert a["false_failure_suites"] == 1
     assert a["mutants_killed"] == 1 and a["mutants_live_total"] == 2
     assert a["mean_mutation_score"] == 0.5
+
+
+def test_grounded_score_is_zero_for_invalid_suites():
+    """D030: defined for every function, so the paired comparison is unconditional."""
+    valid = score_suite(ok("passed"), {"m1": ok("failed"), "m2": ok("passed")})
+    invalid = score_suite(ok("failed"), {"m1": ok("failed")})
+    assert grounded_score(valid) == 0.5
+    assert grounded_score(invalid) == 0.0
+    assert aggregate([valid, invalid])["mean_grounded_score"] == 0.25

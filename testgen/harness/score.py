@@ -85,6 +85,17 @@ def score_suite(
     return base
 
 
+def grounded_score(s: SuiteScore) -> float:
+    """D030 primary metric: kills / live mutants, **0 for an invalid suite**.
+
+    Defined for every function, so a paired comparison covers the whole pool
+    and an arm cannot win by writing fewer, safer tests. Callers pass the score
+    of the oracle-filled suite; on an unfilled suite this is just the
+    validity-weighted mutation score.
+    """
+    return s.mutation_score if s.valid and s.mutation_score is not None else 0.0
+
+
 def aggregate(scores: list[SuiteScore]) -> dict[str, float | int]:
     """Pool suite scores into the headline table. Denominators are explicit."""
     n = len(scores)
@@ -100,4 +111,5 @@ def aggregate(scores: list[SuiteScore]) -> dict[str, float | int]:
         "mean_mutation_score": (
             sum(s.mutation_score for s in scored) / len(scored) if scored else 0.0
         ),
+        "mean_grounded_score": sum(grounded_score(s) for s in scores) / n if n else 0.0,
     }

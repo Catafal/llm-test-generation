@@ -100,8 +100,8 @@ def instrument(suite: str) -> str:
 
 
 class _Fill(ast.NodeTransformer):
-    def __init__(self, values: dict[int, str], stats: OracleStats) -> None:
-        self.values, self.stats, self.index = values, stats, 0
+    def __init__(self, values: dict[int, str], stats: OracleStats, max_repr: int | None) -> None:
+        self.values, self.stats, self.index, self.max_repr = values, stats, 0, max_repr
 
     def visit_Assert(self, node: ast.Assert) -> ast.AST:
         if not _is_site(node):
@@ -122,7 +122,7 @@ class _Fill(ast.NodeTransformer):
         if _same(new_value, ast.literal_eval(node.test.comparators[0])):
             self.stats.already_correct += 1
             return node
-        if len(text) > MAX_ORACLE_REPR:
+        if self.max_repr is not None and len(text) > self.max_repr:
             self.stats.too_long += 1
             return node
         node.test.comparators[0] = new
@@ -138,18 +138,24 @@ def _same(a, b) -> bool:
         return False
 
 
-def fill(suite: str, reference: str) -> tuple[str, OracleStats, RunResult]:
+def fill(
+    suite: str, reference: str, max_repr: int | None = MAX_ORACLE_REPR
+) -> tuple[str, OracleStats, RunResult]:
     """Rewrite wrong literal expected values with the reference's executed value.
 
-    Returns (filled suite, stats, the instrumented run). The instrumented run
-    is *not* a validity check: asserts were removed. Callers rerun the filled
-    suite on the reference to decide validity, exactly as for any other suite.
+    ``max_repr`` caps the length of a written-back value. Training data keeps
+    the default (D023: never teach a value the model cannot compute);
+    evaluation under D030 passes ``None`` because there the harness, not the
+    model, owns the values. Returns (filled suite, stats, the instrumented
+    run). The instrumented run is *not* a validity check: asserts were
+    removed. Callers rerun the filled suite on the reference to decide
+    validity, exactly as for any other suite.
     """
     run = run_suite(instrument(suite), reference, collect=(ORACLE_FILE,))
     raw = run.artifacts.get(ORACLE_FILE)
     values = {int(k): v for k, v in json.loads(raw).items()} if raw else {}
     stats = OracleStats()
-    tree = _Fill(values, stats).visit(ast.parse(suite))
+    tree = _Fill(values, stats, max_repr).visit(ast.parse(suite))
     ast.fix_missing_locations(tree)
     return ast.unparse(tree) + "\n", stats, run
 

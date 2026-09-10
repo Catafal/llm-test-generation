@@ -27,11 +27,12 @@ from pathlib import Path
 from config import MAX_TESTS_PER_SUITE, ROOT
 from testgen.harness import manifest
 from testgen.harness.runner import run_many, run_suite
-from testgen.harness.score import aggregate, score_suite
+from testgen.harness.score import SuiteScore, aggregate, score_suite
 from testgen.models import MODELS  # noqa: E402  (registry lives with the storage manager)
 from testgen.mutate.equivalence import split_equivalent
 from testgen.mutate.operators import generate_mutants
 from testgen.pilot import load_cases
+from testgen.train.oracle import fill
 
 SHOT_CASES = ("clamp", "letter_grade")
 BATCH = 8
@@ -63,8 +64,14 @@ def few_shots() -> list[tuple[str, str]]:
     return [(cases[n].source, cases[n].strong) for n in SHOT_CASES]
 
 
-def score_generation(text: str, source: str, equivalent: set[str]) -> dict:
-    """Extract, budget, run, score. Returns a JSON-able record."""
+def score_generation(text: str, source: str, equivalent: set[str], grounded: bool = False) -> dict:
+    """Extract, budget, run, score. Returns a JSON-able record.
+
+    ``grounded`` (D030) additionally oracle-fills the budgeted suite from the
+    reference (no repr cap) and scores the filled suite under ``grounded``:
+    {suite, oracle, score}. The unaided ``score`` is kept unchanged so both
+    metrics come from the same generation.
+    """
     from testgen.generate.prompts import enforce_test_budget, extract_suite
 
     try:
@@ -78,19 +85,30 @@ def score_generation(text: str, source: str, equivalent: set[str]) -> dict:
     live, trivial = split_equivalent(source, mutants)
     excluded = trivial | equivalent
     live = [m for m in live if m.id not in excluded]
-    ref = run_suite(suite, source)
-    runs = run_many(suite, {m.id: m.source for m in live})
-    s = score_suite(ref, runs, excluded)
-    return {
+    rec = {
         "parsed": True,
         "suite": suite,
         "n_tests_generated": n_tests,
-        "score": asdict(s),
+        "score": asdict(_score_suite(suite, source, live, excluded)),
         **flags,
     }
+    if grounded:
+        filled, stats, _ = fill(suite, source, max_repr=None)
+        rec["grounded"] = {
+            "suite": filled,
+            "oracle": asdict(stats),
+            "score": asdict(_score_suite(filled, source, live, excluded)),
+        }
+    return rec
 
 
-def best_of(backend, row: dict, shots: list | None) -> dict:
+def _score_suite(suite: str, source: str, live: list, excluded: set[str]):
+    ref = run_suite(suite, source)
+    runs = run_many(suite, {m.id: m.source for m in live})
+    return score_suite(ref, runs, excluded)
+
+
+def best_of(backend, row: dict, shots: list | None, grounded: bool = False) -> dict:
     """Ceiling row (D023): K samples at temperature; the first that is valid on the
     reference is scored (a caller holding the implementation can run the suite and
     resample). Budget per sample is unchanged; total cost is K x, reported as such."""
@@ -101,7 +119,7 @@ def best_of(backend, row: dict, shots: list | None) -> dict:
     gens = backend.generate_many([msgs] * BEST_OF_K, temperature=BEST_OF_TEMP)
     chosen, rec = gens[0], None
     for g in gens:
-        rec = score_generation(g.text, row["source"], row["equivalent"])
+        rec = score_generation(g.text, row["source"], row["equivalent"], grounded)
         chosen = g
         if rec["score"] is not None and rec["score"]["valid"]:
             break
@@ -114,11 +132,12 @@ def best_of(backend, row: dict, shots: list | None) -> dict:
     return {"generation": asdict(total), "samples": BEST_OF_K, **rec}
 
 
-def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, tag: str) -> dict:
+def run_condition(
+    backend, pool: list[dict], shots: list | None, run_dir: Path, tag: str, grounded: bool = False
+) -> dict:
     from testgen.generate.prompts import build_messages
-    from testgen.harness.score import SuiteScore
 
-    records, scores = [], []
+    records = []
     out = (run_dir / "outputs.jsonl").open("a")  # incremental: a crash keeps what was scored
     for i in range(0, len(pool), BATCH):
         chunk = pool[i : i + BATCH]
@@ -135,18 +154,16 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
         for row, g in zip(chunk, gens, strict=True):
             rec = {"id": row["id"], "condition": tag, "model": backend.model_id}
             if tag == "bestof":
-                rec.update(best_of(backend, row, shots))
+                rec.update(best_of(backend, row, shots, grounded))
             else:
                 rec["generation"] = asdict(g)
-                rec.update(score_generation(g.text, row["source"], row["equivalent"]))
+                rec.update(score_generation(g.text, row["source"], row["equivalent"], grounded))
             records.append(rec)
             out.write(json.dumps(rec) + "\n")
-            if rec["score"] is not None:
-                scores.append(SuiteScore(**rec["score"]))
         out.flush()
         print(f"  {tag}: {min(i + BATCH, len(pool))}/{len(pool)}", flush=True)
     out.close()
-    agg = aggregate(scores)
+    agg = aggregate_records(records, grounded)
     agg["unparsed"] = sum(1 for r in records if not r["parsed"])
     agg["truncated"] = sum(1 for r in records if r.get("truncated"))
     agg["pytest_import_added"] = sum(1 for r in records if r.get("pytest_import"))
@@ -157,6 +174,29 @@ def run_condition(backend, pool: list[dict], shots: list | None, run_dir: Path, 
     agg["mean_thinking_tokens"] = sum(
         r["generation"].get("thinking_tokens", 0) for r in records
     ) / len(records)
+    return agg
+
+
+def aggregate_records(records: list[dict], grounded: bool = False) -> dict:
+    """Headline table from scored records; with ``grounded`` the D030 rows are added.
+
+    An unparsed generation has no SuiteScore, so it is absent from the unaided
+    rows (as before) but counts as grounded score 0 (D030: defined for every
+    function).
+    """
+    scores = [SuiteScore(**r["score"]) for r in records if r.get("score") is not None]
+    agg = aggregate(scores)
+    if grounded:
+        g = [SuiteScore(**r["grounded"]["score"]) for r in records if r.get("grounded")]
+        ga = aggregate(g)
+        agg["grounded_validity_rate"] = ga["valid"] / len(records) if records else 0.0
+        agg["grounded_mean_mutation_score"] = ga["mean_mutation_score"]
+        agg["mean_grounded_score"] = (
+            ga["mean_grounded_score"] * len(g) / len(records) if records else 0.0
+        )
+        agg["grounded_literals_replaced"] = sum(
+            r["grounded"]["oracle"]["replaced"] for r in records if r.get("grounded")
+        )
     return agg
 
 
@@ -173,6 +213,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--adapter", default="", help="LoRA adapter dir applied to every model")
     ap.add_argument("--tag", default="", help="run-name suffix, e.g. the checkpoint id")
     ap.add_argument("--thinking", action="store_true", help="reasoning on (budget unchanged)")
+    ap.add_argument(
+        "--grounded", action="store_true", help="D030: also score the oracle-filled suite"
+    )
     args = ap.parse_args(argv)
 
     from testgen.generate.mlx_backend import Backend
@@ -191,6 +234,7 @@ def main(argv: list[str]) -> int:
         few_shot_cases=list(SHOT_CASES),
         adapter=args.adapter or None,
         thinking=args.thinking,
+        grounded=args.grounded,
     )
     table: dict[str, dict] = {}
     for key in args.models.split(","):
@@ -203,18 +247,24 @@ def main(argv: list[str]) -> int:
                 if not (cond == "few" and args.pool == "pilot")
                 else [r for r in pool if r["id"] not in SHOT_CASES]
             )
-            table[f"{key}/{cond}"] = run_condition(backend, rows, fs, run_dir, cond)
+            table[f"{key}/{cond}"] = run_condition(backend, rows, fs, run_dir, cond, args.grounded)
         del backend
     manifest.update(run_dir, results=table)
     print(
         f"\n{'arm':<14}{'n':>4}{'valid':>7}{'mut.score':>10}{'unparsed':>9}{'trunc':>6}"
         f"{'+pytest':>8}{'tok':>6}{'s':>6}"
+        + (f"{'g.valid':>8}{'g.score':>8}" if args.grounded else "")
     )
     for arm, a in table.items():
         print(
             f"{arm:<14}{a['suites']:>4}{a['validity_rate']:>7.2f}{a['mean_mutation_score']:>10.3f}"
             f"{a['unparsed']:>9}{a['truncated']:>6}{a['pytest_import_added']:>8}"
             f"{a['mean_completion_tokens']:>6.0f}{a['mean_seconds']:>6.1f}"
+            + (
+                f"{a['grounded_validity_rate']:>8.2f}{a['mean_grounded_score']:>8.3f}"
+                if args.grounded
+                else ""
+            )
         )
     print(f"\nrun: {run_dir}")
     return 0
