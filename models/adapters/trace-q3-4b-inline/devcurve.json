@@ -1,0 +1,38 @@
+{
+ "0000050": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000050-20260909T150347Z",
+  "validity": 0.45614035087719296,
+  "mutation_score": 0.5492659303925682
+ },
+ "0000100": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000100-20260909T153844Z",
+  "validity": 0.36257309941520466,
+  "mutation_score": 0.6551350824349835
+ },
+ "0000150": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000150-20260909T161557Z",
+  "validity": 0.42105263157894735,
+  "mutation_score": 0.7574599290730482
+ },
+ "0000200": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000200-20260909T165457Z",
+  "validity": 0.3684210526315789,
+  "mutation_score": 0.7487852756786336
+ },
+ "0000250": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000250-20260909T173207Z",
+  "validity": 0.4678362573099415,
+  "mutation_score": 0.7671293578447612
+ },
+ "0000300": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000300-20260909T181230Z",
+  "validity": 0.43859649122807015,
+  "mutation_score": 0.6346928174480981
+ },
+ "0000350": {
+  "run": "baselines-dev-trace-q3-4b-inline-ckpt0000350-20260909T185315Z",
+  "validity": 0.42105263157894735,
+  "mutation_score": 0.7291572085878584
+ },
+ "best": "0000250"
+}

@@ -1,0 +1,43 @@
+{
+ "run": "baselines-dev-trace-q3-4b-inline-ckpt0000200-20260909T165457Z",
+ "created": "2026-09-09T16:54:57.262846+00:00",
+ "git_sha": "cff3d862c77e655f8a834df4ef3f19df9663b2a4",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 171,
+ "models": [
+  "mlx-community/Qwen3-4B-Instruct-2507-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": "models/adapters/trace-q3-4b-inline/ckpt-0000200",
+ "thinking": false,
+ "results": {
+  "q3-4b-bf16/zero": {
+   "suites": 171,
+   "valid": 63,
+   "validity_rate": 0.3684210526315789,
+   "false_failure_suites": 103,
+   "mutants_killed": 1119,
+   "mutants_live_total": 1902,
+   "mean_mutation_score": 0.7487852756786336,
+   "unparsed": 0,
+   "truncated": 27,
+   "pytest_import_added": 0,
+   "mean_completion_tokens": 919.766081871345,
+   "mean_seconds": 11.87732288499951,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "run": "baselines-test-finetune-20260909T193305Z",
+ "created": "2026-09-09T19:33:05.234781+00:00",
+ "git_sha": "cff3d862c77e655f8a834df4ef3f19df9663b2a4",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "test",
+ "n_functions": 315,
+ "models": [
+  "mlx-community/Qwen3-4B-Instruct-2507-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": "models/adapters/trace-q3-4b-inline/ckpt-0000250",
+ "thinking": false,
+ "results": {
+  "q3-4b-bf16/zero": {
+   "suites": 315,
+   "valid": 126,
+   "validity_rate": 0.4,
+   "false_failure_suites": 183,
+   "mutants_killed": 2384,
+   "mutants_live_total": 3666,
+   "mean_mutation_score": 0.7632263937380724,
+   "unparsed": 0,
+   "truncated": 83,
+   "pytest_import_added": 11,
+   "mean_completion_tokens": 1269.873015873016,
+   "mean_seconds": 13.239197026584518,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}
