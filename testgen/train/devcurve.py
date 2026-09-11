@@ -46,13 +46,14 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--limit", type=int, default=60)
     ap.add_argument("--model", default="4b-bf16")
     ap.add_argument("--grounded", action="store_true", help="D030: select by grounded score")
+    ap.add_argument("--every", type=int, default=1, help="evaluate every Nth checkpoint only")
     args = ap.parse_args(argv)
     run = Path(args.run)
     curve_path = run / "devcurve.json"
     curve = json.loads(curve_path.read_text()) if curve_path.exists() else {}
-    for step, d in checkpoints(run):
-        if step in curve:
-            continue  # resumable
+    for i, (step, d) in enumerate(checkpoints(run), 1):
+        if step in curve or i % args.every:
+            continue  # resumable; --every thins the curve when checkpoints are dense
         print(f"== checkpoint {step}", flush=True)
         baselines.main(
             [
