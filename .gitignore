@@ -31,3 +31,5 @@ checkpoints/
 
 # Raw harvest candidates (pre-decontamination); pool.jsonl is the artifact
 data/*/candidates.jsonl
+# D032 external dataset: raw stage output is derivable from the HF snapshot
+data/train/ext/stage_a.jsonl
