@@ -59,7 +59,7 @@ DATASET_URL = "https://huggingface.co/datasets/KodCode/KodCode-V1"
 LICENCE = "CC BY-NC 4.0"
 # Subsets whose questions read like real utility functions, not puzzles.
 # Prefill is seeded from public benchmarks (MBPP/HumanEval style) and is excluded.
-SUBSETS = ("Docs", "Package", "Filter", "Algorithm", "Data Structure", "Evol")
+SUBSETS = ("Docs", "Package", "Filter", "Algorithm", "Data_Structure", "Evol")
 MIN_LIVE_MUTANTS = 8  # same floor as the held-out harvest (D017)
 TEST_IMPORT_OK = {
     "solution",
