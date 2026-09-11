@@ -1,0 +1,48 @@
+{
+ "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0000600-20260911T061219Z",
+ "created": "2026-09-11T06:12:19.911828+00:00",
+ "git_sha": "60f04bc9eafd1736e0a726ca6e686d1918a2e96c",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "dev",
+ "n_functions": 171,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "zero"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": "models/adapters/dpo-grounded-4b-r8/ckpt-0000600",
+ "thinking": false,
+ "grounded": true,
+ "results": {
+  "4b-bf16/zero": {
+   "suites": 171,
+   "valid": 66,
+   "validity_rate": 0.38596491228070173,
+   "false_failure_suites": 101,
+   "mutants_killed": 1125,
+   "mutants_live_total": 1634,
+   "mean_mutation_score": 0.8651391252043689,
+   "mean_grounded_score": 0.6040465268903422,
+   "grounded_validity_rate": 0.7134502923976608,
+   "grounded_mean_mutation_score": 0.8466553778544961,
+   "grounded_literals_replaced": 228,
+   "unparsed": 0,
+   "truncated": 4,
+   "pytest_import_added": 6,
+   "mean_completion_tokens": 519.0818713450292,
+   "mean_seconds": 6.76423431118972,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}

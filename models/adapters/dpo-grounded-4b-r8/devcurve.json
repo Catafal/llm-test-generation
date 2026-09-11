@@ -1,0 +1,39 @@
+{
+ "0000200": {
+  "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0000200-20260911T051205Z",
+  "validity": 0.3684210526315789,
+  "mutation_score": 0.8114200109883514,
+  "grounded_score": 0.5938392409862031
+ },
+ "0000400": {
+  "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0000400-20260911T054246Z",
+  "validity": 0.36257309941520466,
+  "mutation_score": 0.8800535543748803,
+  "grounded_score": 0.6045112181042559
+ },
+ "0000600": {
+  "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0000600-20260911T061219Z",
+  "validity": 0.38596491228070173,
+  "mutation_score": 0.8651391252043689,
+  "grounded_score": 0.6040465268903422
+ },
+ "0000800": {
+  "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0000800-20260911T063832Z",
+  "validity": 0.39766081871345027,
+  "mutation_score": 0.8647056796266334,
+  "grounded_score": 0.5973009026751693
+ },
+ "0001000": {
+  "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0001000-20260911T070331Z",
+  "validity": 0.4269005847953216,
+  "mutation_score": 0.8553317935495821,
+  "grounded_score": 0.6137157245952488
+ },
+ "0001200": {
+  "run": "baselines-dev-dpo-grounded-4b-r8-ckpt0001200-20260911T073240Z",
+  "validity": 0.4093567251461988,
+  "mutation_score": 0.8525288734069845,
+  "grounded_score": 0.6017062441529506
+ },
+ "best": "0001000"
+}
