@@ -153,11 +153,71 @@ write fluent, trace-shaped derivations that are invented, and to write fewer
 tests; 37 of the 83 truncated suites are valid because truncation removed
 tests. The validity gain is brevity, the kill-rate loss is the same brevity.
 
-## What three iterations settle
+## Iteration 4: changing the task, not the model (2026-09-11, D030)
+
+Three iterations showed a 4B model does not learn to predict outputs. So the
+task was changed: the harness fills every `assert <expr> == <literal>` from
+the reference's execution, **in every arm, base included**, and the model is
+judged on whether its inputs expose the mutants. The metric is the
+*grounded score*: kills over live mutants, 0 if the suite still fails after
+filling, averaged over all 315 test functions. Pre-registered success rule:
+paired bootstrap CI on the difference vs base zero-shot excludes 0.
+
+**Exploratory (existing generations re-scored under the new metric)** and
+**confirmatory (grounded DPO, one run, checkpoint by dev-171)**, Qwen3.5-4B
+bf16, same prompt, budget and mutants:
+
+| arm | unaided validity | grounded validity | mutation score (grounded-valid) | grounded score | vs base zero (CI 95%) |
+|---|---|---|---|---|---|
+| base zero-shot | 0.438 | 0.717 | 0.842 | 0.604 | — |
+| base few-shot | 0.420 | 0.702 | 0.854 | 0.599 | −0.005 [−0.051, +0.041] |
+| SFT ckpt120 (iteration 1), re-scored | 0.397 | 0.743 | 0.846 | 0.629 | +0.024 [−0.021, +0.070] |
+| DPO ckpt900 (iteration 2), re-scored | 0.441 | 0.698 | 0.854 | 0.596 | −0.008 |
+| **grounded DPO ckpt1000 (confirmatory)** | 0.413 | 0.740 | 0.857 | **0.629** | **+0.024 [−0.013, +0.064]** |
+
+Grounded DPO vs few-shot: +0.029 [−0.015, +0.073]. Grounded DPO vs the
+re-scored SFT: 0.000 [−0.044, +0.042]. Grounded validity 0.740 vs 0.717
+(McNemar p=0.41; 30 functions only the fine-tune, 23 only the base).
+Mutation score on the 203 both-valid functions: +0.005 [−0.008, +0.017].
+Unaided validity 0.413 vs 0.438 (no collapse). `arith` probe: 197 kills vs
+206, no operator drift. Dev-171 curve, six checkpoints: 0.594–0.614, base
+0.621, flat.
+
+**Verdict.** The pre-registered bar (CI lower bound > 0) is not met. The
+point estimate is +0.024 in both training arms, the same size as the
+iteration-1 re-score, which suggests a small real effect that n=315 cannot
+resolve (half-width ≈ 0.04); a definitive answer would need ~1,500
+functions. The training data were learnable (validation preference
+accuracy 0.50 → 0.70, margin 0 → 0.45) but the preference did not transfer
+into better inputs on new functions.
+
+**What the harness did.** Filling alone lifts every arm from ~0.43 to
+~0.71 validity by rewriting ~1.4 literals per suite (412–584 per arm). The
+remaining ~26% grounded-invalid suites fail on average 2.5 tests each,
+on inputs and non-literal asserts, not values. That is the product result:
+an execution-grounded harness is worth 28 validity points; a fine-tune on
+top of it is worth at most a few.
+
+**The principle we skipped, priced.** Every published small-model gain on
+code used tens of thousands of examples from a stronger teacher. This
+project banned an external teacher (D023) to keep the story self-contained
+and stayed at 388–645 self-generated examples. Local distillation from a
+30B-class coder in 4-bit fits the Mac and is the one untried lever; it is
+recorded, not run.
+
+**Limitation stated plainly.** Filled asserts snapshot the reference
+(oracle tautology, Konstantinou 2024): the grounded metric measures input
+and coverage quality, not oracle reasoning, and a reference bug would be
+baked in. That is what a CI test-writing tool does; the write-up and the
+demo say so.
+
+## What four iterations settle
 
 Three signals (execution-corrected literals, the model's own pass/fail
 preferences, execution-grounded derivations), two bases, one metric, and
-per-assert value accuracy never moved. At a few hundred examples with LoRA,
+per-assert value accuracy never moved. A fourth iteration removed values
+from the task and trained on grounded preferences; the gain is +0.024,
+unresolved at n=315. At a few hundred examples with LoRA,
 a 4B model does not acquire execution prediction; the one published success
 at 3B used ~80M traces. The bottleneck is a base-model capability, not a
 recipe choice within this budget. The recipe, harness, decontaminated pools
@@ -168,8 +228,8 @@ at every step.
 
 Outside this project's budget: trace-explanation pretraining at scale
 (millions of traced functions), or a base that already predicts outputs
-(CRUXEval-O ≥ 70). Inside it: change the task so correctness does not
-require predicting outputs (execution-grounded expected values at authoring
-time), which is a product decision rather than a training one.
+(CRUXEval-O ≥ 70). The task change (execution-grounded expected values) was
+run as iteration 4 and is now the product recommendation; the remaining
+untried training lever is local teacher distillation at 10k+ examples.
 
 Every number traces to a manifest under `runs/` or `models/adapters/`.
