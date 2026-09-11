@@ -34,8 +34,8 @@ propose:          ## T2: 4B self-samples K per training fn; K=8 BATCH=16 [RESUME
 filter:           ## T3: oracle-fill + execution filter -> data/train/sft/; RUN=runs/propose-*
 	uv run --group models python -m testgen.train.filter --run $(RUN)
 
-train-single:     ## T5: one-process LoRA (compile disabled) -> models/adapters/$(RUN)
-	caffeinate -i uv run --group models python -m testgen.train.train -c configs/lora-4b.yaml --adapter-path models/adapters/$(or $(RUN),lora-4b)
+train-single:     ## T5: one-process LoRA (compile disabled) -> models/adapters/$(RUN) [CONFIG=configs/lora-4b.yaml]
+	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.train -c $(or $(CONFIG),configs/lora-4b.yaml) --adapter-path models/adapters/$(or $(RUN),lora-4b)
 
 train-dense:      ## D028: SFT on the dense base; RUN= DATA=data/train/trace/inline ITERS=
 	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.train -c configs/lora-q3-4b.yaml --keep-compile --adapter-path models/adapters/$(or $(RUN),trace-q3-4b) $(if $(DATA),--data $(DATA),) $(if $(ITERS),--iters $(ITERS),)

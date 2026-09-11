@@ -1,0 +1,12 @@
+{
+ "rows/Evol": 13170,
+ "kept/Evol": 6560,
+ "rows/Package": 6687,
+ "kept/Package": 2259,
+ "rows/Algorithm": 30298,
+ "kept/Algorithm": 10558,
+ "rows/Docs": 42018,
+ "kept/Docs": 1259,
+ "rows/Filter": 76676,
+ "kept/Filter": 23891
+}
