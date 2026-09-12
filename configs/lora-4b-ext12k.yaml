@@ -1,0 +1,52 @@
+# D032 stage 1, second point: same recipe on the 12,000-example KodCode set (~11,400 train / 600 valid). Config-as-code:
+# every training run is `mlx_lm.lora -c configs/lora-4b.yaml` plus an
+# --adapter-path override, and the run manifest records this file's sha.
+#
+# lora_parameters.keys is verified against `named_modules()` in T4 (FT7): all
+# linear projections, including the Gated DeltaNet ones, not just attention.
+
+model: mlx-community/Qwen3.5-4B-bf16      # bf16, never QLoRA on Qwen3.5 (FT9)
+train: true
+data: data/train/ext12k                   # curated KodCode, 12k cut (D032 S1.2), chat format
+fine_tune_type: lora
+optimizer: adamw
+mask_prompt: true                         # completion-only loss (FT8)
+num_layers: 16                            # last 16 (4 attention + 12 DeltaNet); D024: memory/speed of
+                                          # the DeltaNet training path, frozen layers keep the kernel
+batch_size: 1                             # D024: per-layer backward transient scales with T
+grad_accumulation_steps: 8                # effective batch 8 (FT8)
+learning_rate: 1.0e-4
+lr_schedule:
+  name: cosine_decay
+  warmup: 10
+  arguments: [1.0e-4, 1425, 1.0e-6]       # init, decay steps (= 11400 / 8), end
+iters: 11400                              # micro-batches (batch 1): 1 epoch of ~11,400 = 1,425 optimizer
+                                          # steps at accumulation 8 (~28 h at 32 tok/s)
+max_seq_length: 1024                      # D024: 1536 OOMs on 48 GB; filter drops longer examples
+grad_checkpoint: true                     # 48 GB Mac: trade compute for activation memory
+steps_per_report: 10
+steps_per_eval: 1200                      # val loss is logged; early stopping is by dev harness (FT12)
+val_batches: 50                           # 200 valid examples would cost ~5 min per eval on this path
+save_every: 1200                          # 9 checkpoints (every 150 optimizer steps) for the dev curve
+seed: 0
+adapter_path: models/adapters/lora-4b-ext12k
+lora_parameters:
+  # Verified on mlx-community/Qwen3.5-4B-bf16 (4.21 B params): 8 full-attention
+  # layers (self_attn.*), 24 Gated DeltaNet layers (linear_attn.*), MLP in all 32.
+  keys:
+    - self_attn.q_proj
+    - self_attn.k_proj
+    - self_attn.v_proj
+    - self_attn.o_proj
+    - linear_attn.in_proj_qkv
+    - linear_attn.in_proj_z
+    - linear_attn.in_proj_a
+    - linear_attn.in_proj_b
+    - linear_attn.out_proj
+    - mlp.gate_proj
+    - mlp.up_proj
+    - mlp.down_proj
+  rank: 16
+  scale: 2.0                              # = alpha/rank = 32/16. NOT alpha: mlx-lm multiplies the
+                                          # adapter output by scale directly (32 diverged, measured)
+  dropout: 0.05

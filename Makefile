@@ -46,8 +46,8 @@ train:            ## T5 fallback: segmented LoRA (mlx-lm#1185) -> models/adapter
 devcurve:         ## T5: harness score of every checkpoint on 60 dev fns; RUN=models/adapters/<run> [GROUNDED=1 EVERY=2]
 	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.devcurve --run $(RUN) --limit $(or $(LIMIT),60) --model $(or $(MODEL),4b-bf16) $(if $(GROUNDED),--grounded,) $(if $(EVERY),--every $(EVERY),)
 
-curate-ext:       ## D032 stage 1: KodCode through the harness; STAGE=a|b|c [LIMIT= KEEP= RESUME=1]
-	caffeinate -i uv run python -m testgen.train.curate_ext --stage $(or $(STAGE),a) $(if $(LIMIT),--limit $(LIMIT),) $(if $(KEEP),--keep $(KEEP),) $(if $(RESUME),--resume,)
+curate-ext:       ## D032 stage 1: KodCode through the harness; STAGE=a|b|c [LIMIT= KEEP= OUT= RESUME=1]
+	caffeinate -i uv run python -m testgen.train.curate_ext --stage $(or $(STAGE),a) $(if $(LIMIT),--limit $(LIMIT),) $(if $(KEEP),--keep $(KEEP),) $(if $(OUT),--out $(OUT),) $(if $(RESUME),--resume,)
 
 pairs:            ## D026: preference pairs from data/train/sft/scored.jsonl -> data/train/dpo/ [GROUNDED=1 -> dpo-grounded/]
 	HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.pairs $(if $(GROUNDED),--grounded,)
