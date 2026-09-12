@@ -1,0 +1,39 @@
+{
+ "dataset": "KodCode/KodCode-V1",
+ "licence": "CC BY-NC 4.0",
+ "subsets": [
+  "Docs",
+  "Package",
+  "Filter",
+  "Algorithm",
+  "Data_Structure",
+  "Evol"
+ ],
+ "candidates": 21085,
+ "removed_vs_heldout": 14,
+ "ast_exact_duplicates": 7025,
+ "fit_max_train_tokens": 13429,
+ "kept": 12000,
+ "families": 12000,
+ "train": 11400,
+ "valid": 600,
+ "kept_mean_mutation_score": 0.9372886939354512,
+ "kept_mean_tests": 5.7876666666666665,
+ "kept_mean_tokens": 655.3361666666667,
+ "kept_assertion_styles": {
+  "literal_eq": 82488,
+  "approx": 53,
+  "relational": 365,
+  "membership": 963,
+  "expr_eq": 7203,
+  "other": 1528
+ },
+ "kept_by_subset": {
+  "Algorithm": 2325,
+  "Docs": 244,
+  "Evol": 1543,
+  "Filter": 7188,
+  "Package": 700
+ },
+ "seed": 20260911
+}
