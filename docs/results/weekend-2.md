@@ -211,13 +211,68 @@ and coverage quality, not oracle reasoning, and a reference bug would be
 baked in. That is what a CI test-writing tool does; the write-up and the
 demo say so.
 
-## What four iterations settle
+## Iteration 5: 4,000 execution-verified examples from a frontier teacher (2026-09-12, D032 stage 1)
+
+Same base (Qwen3.5-4B bf16), same LoRA recipe as iteration 1, same
+grounded evaluation as iteration 4. The only change is the data: 4,000
+(function, pytest) pairs curated from KodCode-V1 (GPT-4o solutions and
+tests, CC BY-NC 4.0) through our own harness: one pure function, at least
+8 live mutants, suite passes on its function, kills at least one
+training-category mutant, n-gram and AST decontamination against both
+held-out splits, exact-AST dedup, top 4,000 by mutation score and brevity.
+One epoch, checkpoint 3200 chosen on dev-171 by grounded score
+(0.630 vs base 0.621; four checkpoints, 0.589–0.630).
+
+| arm | unaided validity | grounded validity | mut. score (grounded-valid) | grounded score | vs base zero (CI 95%) |
+|---|---|---|---|---|---|
+| base zero-shot | 0.438 | 0.717 | 0.842 | 0.604 | — |
+| base few-shot | 0.420 | 0.702 | 0.854 | 0.599 | −0.005 |
+| grounded DPO (iteration 4) | 0.413 | 0.740 | 0.857 | 0.629 | +0.024 [−0.013, +0.064] |
+| **KodCode SFT ckpt3200** | 0.460 | **0.803** | 0.868 | **0.664** | **+0.059 [+0.013, +0.105]** |
+
+Against few-shot: +0.064 [+0.016, +0.114]. Grounded validity +0.086
+[+0.032, +0.137], McNemar p = 0.002 (51 functions only the fine-tune, 24
+only the base). Mutation score on the 202 both-valid functions −0.023
+[−0.048, +0.001]. Unaided validity +0.022 [−0.038, +0.083], unresolved.
+`arith` probe: 258 kills vs 206, no operator drift. **The pre-registered
+success rule (CI lower bound > 0 on the grounded score) is met.**
+
+**Mechanism.** The model adopted the teacher's style: 4.9 tests per suite
+(base 7.7), 85% literal-equality asserts (base 72%), 6% membership asserts
+(base 21%), 19 truncated suites (base 31). The harness rewrote 798
+literals (base 412). Under an execution-grounded harness that is the
+optimal style: short suites of exact-value asserts, every value supplied
+by execution. What remains grounded-invalid fell from 89 to 62 suites.
+Unaided validity did not resolve, so the model did **not** learn to
+predict values better; it learned to write suites the harness can
+complete. The small mutation-score loss on both-valid functions is the
+price of shorter suites; the net over all functions is +5.9 points.
+
+**What this settles.** Four iterations on 388–645 self-generated examples
+were null; the fifth, on 4,000 frontier-teacher examples through the same
+harness, is a resolved gain on the pre-registered metric. The lever was
+the data source and scale, as the practice review predicted
+(`docs/research/2026-09-11-fine-tuning-practice/`). The result holds
+under the grounded harness, which is the product setting; it does not
+show that a 4B model learned execution prediction.
+
+**Limitations.** KodCode is CC BY-NC 4.0, so the adapter is non-commercial.
+One epoch, one checkpoint selection on 171 functions, one test run; the
+interval is wide (half-width ≈ 0.046) and the effect could be half or
+twice the point estimate. Data selection on mutation score favours simpler
+functions. A second training point (12,000 examples) would give a
+dose-response curve; not run.
+
+## What five iterations settle
 
 Three signals (execution-corrected literals, the model's own pass/fail
 preferences, execution-grounded derivations), two bases, one metric, and
 per-assert value accuracy never moved. A fourth iteration removed values
 from the task and trained on grounded preferences; the gain is +0.024,
-unresolved at n=315. At a few hundred examples with LoRA,
+unresolved at n=315. A fifth kept the harness and replaced the data with
+4,000 execution-verified frontier-teacher examples: +0.059 [+0.013,
++0.105], resolved. Data source and scale were the lever; the recipe was
+never the problem. At a few hundred examples with LoRA,
 a 4B model does not acquire execution prediction; the one published success
 at 3B used ~80M traces. The bottleneck is a base-model capability, not a
 recipe choice within this budget. The recipe, harness, decontaminated pools
