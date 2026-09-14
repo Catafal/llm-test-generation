@@ -4,7 +4,14 @@ Note · 14 September 2026 · reasoned, with one measurement · 7 min read
 
 **Summary.** Five iterations comparing prompting and fine-tuning on one task. I spent three of them trying to install a capability in a 4B model with a few hundred of its own examples, and one changing the task so the capability was not needed. The gain came from a style, which a prompt delivers without training; the harness did more than any fine-tune; and pre-registration saved me more often than it vindicated me.
 
-The project started as a work sample. The question a hiring manager would ask, I thought, was "can you fine-tune a small model and prove it got better?" The honest answer, after two weeks, is yes, and the proof took four failures to construct, and the failures are the part I would show first.
+The project started as a work sample. The question a hiring manager would ask, I thought, was "can you fine-tune a small model and prove it got better?" The honest answer, after two weeks, is yes, and it was not worth doing. Ranked by what moved the metric, on the same 315 functions:
+
+1. The harness. Filling expected values by execution: 28 validity points, no training, every arm.
+2. A paragraph of system prompt: +0.076 over zero-shot, no training, the fastest arm.
+3. Twelve thousand teacher examples: +0.062, the same style, slower, and −0.014 against the prompt with an interval including zero.
+4. The model's own outputs, four ways: nothing that resolved.
+
+The fine-tune is not wrong. It is redundant, and the proof took four failures and a control to construct, and those are the parts I would show first.
 
 ## The one number per iteration
 

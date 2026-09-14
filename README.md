@@ -4,21 +4,18 @@ Can a 4B model learn to write pytest suites that expose bugs, measured against
 the same model prompted, on 315 real functions written after its training
 cutoff? Two weeks, one Mac, five fine-tuning iterations, every decision logged.
 
-**Result.** Under a harness that fills expected values by executing the
-function, adapters trained on 4,000 and 12,000 execution-verified examples
-from a public GPT-4o dataset catch **+0.059 and +0.062 more of the hidden
-mutants per function** than the base prompted zero-shot (paired 95% CI
-+0.013 to +0.105, n = 315, pre-registered). Then the control the reviewers
-asked for: **the base prompted for the same style, short suites of
-exact-value asserts, scores +0.076 with no training**, and both adapters sit
-below it (−0.014 and −0.017, intervals including zero). The fine-tune bought
-the style; asking for the style is worth more. Four earlier iterations on
-the model's own outputs did not move the metric, each measured down to its
-mechanism, and the harness itself is the largest effect in the repo:
-filling values by execution lifts validity from 0.44 to 0.72 before any
-prompt or weight changes. The rule the project leaves behind: when the
-model lacks a capability the task needs, give the job to a tool; when the
-gap is style, prompt first, and fine-tune only if the prompt cannot reach it.
+**Result, in order of what moved the metric.**
+
+1. **The harness.** Filling expected values by executing the function: validity 0.44 to 0.72, no training, every arm.
+2. **A paragraph of system prompt.** The base asked for short suites of exact-value asserts: +0.076 mutants caught per function over zero-shot [+0.034, +0.118], the fastest arm in the series.
+3. **12,000 teacher examples.** Fine-tuning on execution-verified GPT-4o data: +0.062 [+0.015, +0.106], and −0.014 against the prompt with an interval including zero. Same style, slower, nothing on top.
+4. **The model's own outputs**, four ways: nothing that resolved, each measured down to its mechanism.
+
+The fine-tune is not wrong, it is redundant. The rule the project leaves
+behind: when the model lacks a capability the task needs, give the job to a
+tool; when the gap is style, prompt first, and fine-tune only if the prompt
+cannot reach it. Every number below is paired over the same 315 post-cutoff
+functions, and the fine-tune rows were pre-registered before they ran.
 
 | arm (Qwen3.5-4B, test n = 315, grounded harness) | grounded validity | mutation score on grounded-valid | grounded score | Δ vs base zero-shot, 95% CI |
 |---|---|---|---|---|
