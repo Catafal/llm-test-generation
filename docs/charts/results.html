@@ -40,10 +40,10 @@ const rnd=(i,k)=>Math.abs(((i*73856093)^(k*19349663))%1000)/1000;
 const obsReveal=(id,fn)=>{const n=document.getElementById(id);const go=()=>{n.innerHTML='';fn(n)};
   const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){go();io.disconnect()}},{threshold:.3});
   io.observe(n);n.style.cursor='pointer';n.addEventListener('click',go)};
-const D=[["BASE ZERO-SHOT", 60.4, 60.4, 60.4, false], ["BASE FEW-SHOT", 59.9, 55.4, 64.5, false], ["SFT \u00b7 388 SELF", 62.9, 58.3, 67.4, false], ["DPO \u00b7 645 SELF", 62.9, 59.1, 66.8, false], ["SFT \u00b7 4K KODCODE", 66.4, 61.7, 70.9, false], ["SFT \u00b7 12K KODCODE", 66.7, 61.9, 71.1, false], ["BASE \u00b7 STYLE PROMPT", 68.0, 63.9, 72.3, true]];
+const D=[["BASE ZERO-SHOT", 60.4, 60.4, 60.4, false], ["BASE FEW-SHOT", 59.9, 55.4, 64.5, false], ["SFT \u00b7 388 SELF", 62.9, 58.3, 67.4, false], ["DPO \u00b7 645 SELF", 62.9, 59.1, 66.8, false], ["SFT \u00b7 4K KODCODE", 66.4, 61.7, 70.9, false], ["SFT \u00b7 12K KODCODE", 66.7, 61.9, 71.1, false], ["12K + STYLE PROMPT", 66.7, 62.0, 71.3, false], ["BASE \u00b7 STYLE PROMPT", 68.0, 63.9, 72.3, true]];
 
 obsReveal('ch',s=>{
-  const y0=i=>40+i*38,X0=118,PX=3.7,ORIGIN=40; // ticks start at 40 points: nothing scored below it
+  const y0=i=>36+i*34,X0=118,PX=3.7,ORIGIN=40; // ticks start at 40 points: nothing scored below it
   const xOf=v=>X0+(v-ORIGIN)*PX;
   D.forEach(([name,v,lo,hi,hero],i)=>{
     const y=y0(i),n=Math.round(v-ORIGIN);
@@ -66,7 +66,7 @@ obsReveal('ch',s=>{
       class:'fade',style:`animation-delay:${.4+i*.08}s`},(v/100).toFixed(3));
     tip(lab,`${name} — grounded score ${(v/100).toFixed(3)}, 95% CI vs base [${(lo/100).toFixed(3)}, ${(hi/100).toFixed(3)}]`);
   });
-  el(s,'line',{x1:xOf(D[0][1]),y1:32,x2:xOf(D[0][1]),y2:y0(6)+22,stroke:FLOOR,'stroke-width':.7,'stroke-dasharray':'2 3',class:'fade',style:'animation-delay:.8s'});
+  el(s,'line',{x1:xOf(D[0][1]),y1:32,x2:xOf(D[0][1]),y2:y0(7)+22,stroke:FLOOR,'stroke-width':.7,'stroke-dasharray':'2 3',class:'fade',style:'animation-delay:.8s'});
   txt(s,{x:200,y:308,'font-size':7,'font-weight':600,fill:FAINT,'text-anchor':'middle','letter-spacing':'.12em',class:'fade',style:'animation-delay:.9s'},
     'ONE TICK = ONE POINT ABOVE 0.40 · RANGE = PAIRED 95% CI VS BASE');
 });

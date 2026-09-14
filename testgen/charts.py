@@ -40,7 +40,8 @@ ARMS = [  # label, run dir, hero?
     ("DPO · 645 SELF", "baselines-test-finetune-20260911T075927Z", False),
     ("SFT · 4K KODCODE", "baselines-test-finetune-20260912T130009Z", False),
     ("SFT · 12K KODCODE", "baselines-test-finetune-20260914T115239Z", False),
-    ("BASE · STYLE PROMPT", "runs/baselines-test-control-teacher-20260914T143758Z"[5:], True),
+    ("12K + STYLE PROMPT", "baselines-test-ext12k-teacher-20260914T152109Z", False),
+    ("BASE · STYLE PROMPT", "baselines-test-control-teacher-20260914T143758Z", True),
 ]
 DEV = {
     "4K": ROOT / "models/adapters/lora-4b-ext/devcurve.json",
@@ -185,7 +186,7 @@ def chart_results(arms: list[dict]) -> Path:
     ]
     script = """
 obsReveal('ch',s=>{
-  const y0=i=>40+i*38,X0=118,PX=3.7,ORIGIN=40; // ticks start at 40 points: nothing scored below it
+  const y0=i=>36+i*34,X0=118,PX=3.7,ORIGIN=40; // ticks start at 40 points: nothing scored below it
   const xOf=v=>X0+(v-ORIGIN)*PX;
   D.forEach(([name,v,lo,hi,hero],i)=>{
     const y=y0(i),n=Math.round(v-ORIGIN);
@@ -208,7 +209,7 @@ obsReveal('ch',s=>{
       class:'fade',style:`animation-delay:${.4+i*.08}s`},(v/100).toFixed(3));
     tip(lab,`${name} — grounded score ${(v/100).toFixed(3)}, 95% CI vs base [${(lo/100).toFixed(3)}, ${(hi/100).toFixed(3)}]`);
   });
-  el(s,'line',{x1:xOf(D[0][1]),y1:32,x2:xOf(D[0][1]),y2:y0(6)+22,stroke:FLOOR,'stroke-width':.7,'stroke-dasharray':'2 3',class:'fade',style:'animation-delay:.8s'});
+  el(s,'line',{x1:xOf(D[0][1]),y1:32,x2:xOf(D[0][1]),y2:y0(7)+22,stroke:FLOOR,'stroke-width':.7,'stroke-dasharray':'2 3',class:'fade',style:'animation-delay:.8s'});
   txt(s,{x:200,y:308,'font-size':7,'font-weight':600,fill:FAINT,'text-anchor':'middle','letter-spacing':'.12em',class:'fade',style:'animation-delay:.9s'},
     'ONE TICK = ONE POINT ABOVE 0.40 · RANGE = PAIRED 95% CI VS BASE');
 });"""
@@ -230,7 +231,7 @@ def chart_harness(arms: list[dict]) -> Path:
     ]
     script = """
 obsReveal('ch',s=>{
-  const y0=i=>46+i*38,X0=126,X1=372,mapX=v=>X0+(v-35)/55*(X1-X0);
+  const y0=i=>42+i*34,X0=126,X1=372,mapX=v=>X0+(v-35)/55*(X1-X0);
   D.forEach(([name,was,now,hero],i)=>{
     const y=y0(i),xa=mapX(was),xb=mapX(now),ink=hero?HERO:DATA;
     txt(s,{x:116,y:y+3,'font-size':7.5,'font-weight':700,fill:LAB,'text-anchor':'end','letter-spacing':'.06em',class:'fade',style:`animation-delay:${i*.08}s`},name);
@@ -273,7 +274,7 @@ def chart_discordant(arms: list[dict]) -> Path:
     ]
     script = """
 obsReveal('ch',s=>{
-  const x0=i=>48+i*60,base=250,step=3.4,HW=9;
+  const x0=i=>42+i*52,base=250,step=3.4,HW=8;
   D.forEach(([name,was,now,hero],i)=>{
     const xa=x0(i)-13,xb=x0(i)+13,ink=hero?HERO:DATA;
     for(let k=0;k<was;k++){const y=base-k*step,w=HW-1.2+rnd(k+1,i+2)*2.4;
@@ -301,7 +302,7 @@ obsReveal('ch',s=>{
 
 def chart_styles(arms: list[dict]) -> Path:
     """F7 Stacked Rungs: assertion mix per arm; one rung = 2% of asserts; darkest = exact-value literals."""
-    pick = [arms[0], arms[4], arms[5], arms[6]]
+    pick = [arms[0], arms[4], arms[5], arms[7]]
     data = [
         [
             a["label"].replace("BASE ", "").replace(" KODCODE", ""),

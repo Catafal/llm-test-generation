@@ -74,6 +74,7 @@ score difference of about ±0.045.
 | it. 4 DPO, 645 own grounded pairs | 0.413 | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
 | **it. 5a SFT, 4,000 KodCode (`lora-4b-ext`)** | 0.460 | 0.803 | 0.826 | **0.664** | **+0.059 [+0.013, +0.105]** |
 | **it. 5b SFT, 12,000 KodCode (`lora-4b-ext12k`)** | 0.467 | 0.822 | 0.811 | **0.667** | **+0.062 [+0.015, +0.106]** |
+| it. 5b adapter under the teacher-style prompt (D037) | 0.575 | 0.867 | 0.769 | 0.667 | +0.062 [+0.016, +0.109] |
 | **control: base, teacher-style prompt (D036)** | 0.571 | 0.860 | 0.791 | **0.680** | **+0.076 [+0.034, +0.118]** |
 
 Iteration 3 (execution-trace targets) ran on the dense Qwen3-4B-2507 and is
@@ -91,6 +92,11 @@ score on both-valid functions −0.023 [−0.048, +0.001] and −0.024 [−0.049
 0.000]; unaided validity +0.022 and +0.029 (both unresolved); held-out
 `arith` mutation category (never used in curation): 258 and 259 kills vs
 206, no operator drift. 12k vs 4k: +0.003 [−0.027, +0.034].
+
+The 12k adapter under the style prompt vs the control: −0.014 [−0.044,
++0.019]; vs itself under the plain prompt: 0.000 [−0.031, +0.032] (the
+prompt raises its grounded validity by 0.044 and lowers its kills per valid
+suite by 0.044). Adapter and prompt do not stack.
 
 Adapters vs the control: 12k −0.014 [−0.051, +0.022] (grounded validity
 −0.038, p = 0.12); 4k −0.017 [−0.057, +0.022] (grounded validity −0.057,
@@ -181,8 +187,9 @@ decontaminated against both splits.
   base arm eight times across the series with no multiplicity correction.
 - The style-matched prompt control separates "fine-tuning" from
   "formatting", and it says formatting: the adapters do not beat the base
-  prompted for their own style. Use these adapters only if you need the
-  style without a system prompt; otherwise use the prompt.
+  prompted for their own style. Stacking the adapter and the prompt
+  (D037) changes nothing: 0.667 either way. Use these adapters only if you
+  need the style without a system prompt; otherwise use the prompt.
 - No dose-response from 4k to 12k; saturation and the lower selection
   quality of the larger cut are confounded.
 - Held-out functions are pure and self-contained by construction; nothing

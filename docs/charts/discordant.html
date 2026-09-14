@@ -40,10 +40,10 @@ const rnd=(i,k)=>Math.abs(((i*73856093)^(k*19349663))%1000)/1000;
 const obsReveal=(id,fn)=>{const n=document.getElementById(id);const go=()=>{n.innerHTML='';fn(n)};
   const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){go();io.disconnect()}},{threshold:.3});
   io.observe(n);n.style.cursor='pointer';n.addEventListener('click',go)};
-const D=[["FEW-SHOT", 38, 33, false], ["SFT \u00b7 388 SELF", 29, 37, false], ["DPO \u00b7 645 SELF", 23, 30, false], ["SFT \u00b7 4K", 24, 51, false], ["SFT \u00b7 12K", 21, 54, false], ["\u00b7 STYLE PROMPT", 11, 56, true]];
+const D=[["FEW-SHOT", 38, 33, false], ["SFT \u00b7 388 SELF", 29, 37, false], ["DPO \u00b7 645 SELF", 23, 30, false], ["SFT \u00b7 4K", 24, 51, false], ["SFT \u00b7 12K", 21, 54, false], ["12K + STYLE PROMPT", 14, 61, false], ["\u00b7 STYLE PROMPT", 11, 56, true]];
 
 obsReveal('ch',s=>{
-  const x0=i=>48+i*60,base=250,step=3.4,HW=9;
+  const x0=i=>42+i*52,base=250,step=3.4,HW=8;
   D.forEach(([name,was,now,hero],i)=>{
     const xa=x0(i)-13,xb=x0(i)+13,ink=hero?HERO:DATA;
     for(let k=0;k<was;k++){const y=base-k*step,w=HW-1.2+rnd(k+1,i+2)*2.4;

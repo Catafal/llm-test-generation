@@ -81,8 +81,11 @@ Three reviewers read the draft of this entry and asked the same question in thre
 | KodCode SFT, 4,000 | 0.460 | 0.803 | 0.826 | 0.664 | +0.059 [+0.013, +0.105] |
 | KodCode SFT, 12,000 | 0.467 | 0.822 | 0.811 | 0.667 | +0.062 [+0.015, +0.106] |
 | base, prompted for the style | 0.571 | 0.860 | 0.791 | 0.680 | +0.076 [+0.034, +0.118] |
+| KodCode SFT, 12,000, under the style prompt | 0.575 | 0.867 | 0.769 | 0.667 | +0.062 [+0.016, +0.109] |
 
 The control clears zero by a wider margin than either adapter. The 12,000 adapter against the control: −0.014, [−0.051, +0.022]. The 4,000 adapter: −0.017, [−0.057, +0.022], and its grounded validity is lower by 0.057 with p = 0.02. The control also moved the number no fine-tune had moved: unaided validity 0.571 against 0.438, +0.133 with an interval from +0.073 to +0.190. It writes 4.65 tests per suite, 82 percent exact-value asserts, and the harness had to rewrite 247 literals for it against 520 for the adapter, because a suite with fewer asserts has fewer to get wrong.
+
+One more row, because the question follows immediately: the best adapter with the best prompt. The 12k adapter under the style prompt scores 0.667, the same number it scores under the plain prompt, and −0.014 against the control with an interval that includes zero. The prompt raises the adapter's grounded validity by four points and lowers its kills per valid suite by four points, and the two cancel. The adapter and the prompt teach the same thing; stacking them buys nothing.
 
 So the reading rule fires the way the reviewers predicted. The six points were the style. Asking for the style gets all of them and more, and the two adapters match the prompt without beating it. That is the headline of this entry now, and the one I had written before the control was wrong.
 

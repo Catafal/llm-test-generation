@@ -26,11 +26,15 @@ prompt or weight changes.
 | DPO, 645 own grounded pairs | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
 | SFT, 4,000 KodCode | 0.803 | 0.826 | 0.664 | +0.059 [+0.013, +0.105] |
 | SFT, 12,000 KodCode | 0.822 | 0.811 | 0.667 | +0.062 [+0.015, +0.106] |
+| SFT, 12,000 KodCode, under the style prompt | 0.867 | 0.769 | 0.667 | +0.062 [+0.016, +0.109] |
 | **base, prompted for the style (control)** | 0.860 | 0.791 | **0.680** | **+0.076 [+0.034, +0.118]** |
 
 Adapters against the control: 12k −0.014 [−0.051, +0.022], 4k −0.017
-[−0.057, +0.022]. The control also lifts unaided validity, 0.571 vs 0.438,
-which no fine-tune did.
+[−0.057, +0.022]. The 12k adapter *with* the style prompt: −0.014 [−0.044,
++0.019] against the control and 0.000 against itself under the plain
+prompt; the adapter and the prompt teach the same thing and do not stack.
+The control also lifts unaided validity, 0.571 vs 0.438, which no fine-tune
+did.
 
 ![The prompt for the teacher's style beat the fine-tune](docs/charts/results.png)
 

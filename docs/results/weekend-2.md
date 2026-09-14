@@ -300,6 +300,12 @@ peer review: 2 of 11,756 rows flagged at cosine ≥ 0.90 vs held-out (both
 touched; rows not removed from the trained set; report in
 `data/train/ext12k/DECONTAMINATION-embeddings.md`.
 
+**Adapter + style prompt (2026-09-14, D037).** 12k adapter under
+`SYSTEM_TEACHER`: grounded validity 0.867, mutation score on grounded-valid
+0.769, grounded score 0.667; vs control −0.014 [−0.044, +0.019]; vs the
+adapter under the plain prompt 0.000 [−0.031, +0.032]. The prompt raises
+the adapter's validity and lowers its kills by the same amount. Redundant.
+
 ## What five iterations settle
 
 Three signals (execution-corrected literals, the model's own pass/fail
