@@ -173,7 +173,7 @@ bf16, same prompt, budget and mutants:
 | base few-shot | 0.420 | 0.702 | 0.854 | 0.599 | −0.005 [−0.051, +0.041] |
 | SFT ckpt120 (iteration 1), re-scored | 0.397 | 0.743 | 0.846 | 0.629 | +0.024 [−0.021, +0.070] |
 | DPO ckpt900 (iteration 2), re-scored | 0.441 | 0.698 | 0.854 | 0.596 | −0.008 |
-| **grounded DPO ckpt1000 (confirmatory)** | 0.413 | 0.740 | 0.857 | **0.629** | **+0.024 [−0.013, +0.064]** |
+| **grounded DPO ckpt1000 (confirmatory)** | 0.413 | 0.740 | 0.850 | **0.629** | **+0.024 [−0.013, +0.064]** |
 
 Grounded DPO vs few-shot: +0.029 [−0.015, +0.073]. Grounded DPO vs the
 re-scored SFT: 0.000 [−0.044, +0.042]. Grounded validity 0.740 vs 0.717
@@ -227,8 +227,8 @@ One epoch, checkpoint 3200 chosen on dev-171 by grounded score
 |---|---|---|---|---|---|
 | base zero-shot | 0.438 | 0.717 | 0.842 | 0.604 | — |
 | base few-shot | 0.420 | 0.702 | 0.854 | 0.599 | −0.005 |
-| grounded DPO (iteration 4) | 0.413 | 0.740 | 0.857 | 0.629 | +0.024 [−0.013, +0.064] |
-| **KodCode SFT ckpt3200** | 0.460 | **0.803** | 0.868 | **0.664** | **+0.059 [+0.013, +0.105]** |
+| grounded DPO (iteration 4) | 0.413 | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
+| **KodCode SFT ckpt3200** | 0.460 | **0.803** | 0.826 | **0.664** | **+0.059 [+0.013, +0.105]** |
 
 Against few-shot: +0.064 [+0.016, +0.114]. Grounded validity +0.086
 [+0.032, +0.137], McNemar p = 0.002 (51 functions only the fine-tune, 24
@@ -239,7 +239,10 @@ success rule (CI lower bound > 0 on the grounded score) is met.**
 
 **Mechanism.** The model adopted the teacher's style: 4.9 tests per suite
 (base 7.7), 85% literal-equality asserts (base 72%), 6% membership asserts
-(base 21%), 19 truncated suites (base 31). The harness rewrote 798
+(base 21%), 19 truncated suites (base 31). Mutation score on grounded-valid
+suites is lower (0.826 vs 0.842; 12k: 0.811): the net gain is validity.
+(Table corrected 2026-09-14: the mutation-score column for the fine-tune
+rows had shown the unaided values.) The harness rewrote 798
 literals (base 412). Under an execution-grounded harness that is the
 optimal style: short suites of exact-value asserts, every value supplied
 by execution. What remains grounded-invalid fell from 89 to 62 suites.

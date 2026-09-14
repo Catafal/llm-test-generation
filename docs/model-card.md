@@ -71,13 +71,18 @@ score difference of about ±0.045.
 | base few-shot | 0.420 | 0.702 | 0.854 | 0.599 | −0.005 [−0.051, +0.041] |
 | it. 1 SFT, 388 self-generated, oracle-corrected | 0.397 | 0.743 | 0.846 | 0.629 | +0.024 [−0.021, +0.070] |
 | it. 2 DPO, 497 own pass/fail pairs | 0.441 | 0.698 | 0.854 | 0.596 | −0.008 |
-| it. 4 DPO, 645 own grounded pairs | 0.413 | 0.740 | 0.857 | 0.629 | +0.024 [−0.013, +0.064] |
-| **it. 5a SFT, 4,000 KodCode (`lora-4b-ext`)** | 0.460 | 0.803 | 0.868 | **0.664** | **+0.059 [+0.013, +0.105]** |
-| **it. 5b SFT, 12,000 KodCode (`lora-4b-ext12k`)** | 0.467 | 0.822 | 0.843 | **0.667** | **+0.062 [+0.015, +0.106]** |
+| it. 4 DPO, 645 own grounded pairs | 0.413 | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
+| **it. 5a SFT, 4,000 KodCode (`lora-4b-ext`)** | 0.460 | 0.803 | 0.826 | **0.664** | **+0.059 [+0.013, +0.105]** |
+| **it. 5b SFT, 12,000 KodCode (`lora-4b-ext12k`)** | 0.467 | 0.822 | 0.811 | **0.667** | **+0.062 [+0.015, +0.106]** |
 
 Iteration 3 (execution-trace targets) ran on the dense Qwen3-4B-2507 and is
 in `docs/results/weekend-2.md`: validity +0.054 (p = 0.11) from brevity,
 mutation score −0.070, derivations fabricated.
+
+The grounded score is grounded validity × mutation score on grounded-valid
+suites, by construction; every row above satisfies that identity. (An earlier
+version of this card listed the unaided mutation scores in that column for
+the three fine-tune rows; corrected 2026-09-14.)
 
 Additional rows for the two shipped adapters, vs base zero-shot:
 grounded validity +0.086 (p = 0.002) and +0.105 (p = 0.0002); mutation
@@ -95,7 +100,9 @@ Dev-171 curves (checkpoint selection, grounded score): 4k 0.601 / 0.589 /
 Style transfer from the teacher data, not execution prediction. Compared
 with the base, the adapters write 4.7–4.9 tests per suite (base 7.7), 85–89%
 literal-equality asserts (base 72%), fewer membership asserts, fewer
-truncated suites. Under a harness that fills literals, that is the optimal
+truncated suites. Shorter suites kill fewer mutants: 0.826 and 0.811 on
+grounded-valid suites vs the base's 0.842, so the whole net gain is
+validity, not kills per valid suite. Under a harness that fills literals, that is the optimal
 style; the harness rewrote 520–798 literals per 315 suites (base 412).
 Unaided validity did not resolve, so the model did not become better at
 predicting outputs. Four earlier iterations on 388–645 self-generated

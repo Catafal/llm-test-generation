@@ -48,8 +48,8 @@ Test, 315 functions, grounded harness in both arms:
 |---|---|---|---|---|---|
 | base, zero-shot | 0.438 | 0.717 | 0.842 | 0.604 | |
 | base, few-shot | 0.420 | 0.702 | 0.854 | 0.599 | −0.005 |
-| grounded DPO, entry 004 | 0.413 | 0.740 | 0.857 | 0.629 | +0.024 [−0.013, +0.064] |
-| KodCode SFT, 4,000, checkpoint 3200 | 0.460 | 0.803 | 0.868 | 0.664 | +0.059 [+0.013, +0.105] |
+| grounded DPO, entry 004 | 0.413 | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
+| KodCode SFT, 4,000, checkpoint 3200 | 0.460 | 0.803 | 0.826 | 0.664 | +0.059 [+0.013, +0.105] |
 
 The lower bound clears zero. Against few-shot, +0.064 on [+0.016, +0.114]. Grounded validity +0.086, McNemar p = 0.002, with 51 functions valid only for the fine-tune and 24 only for the base. Mutation score on the 202 both-valid functions −0.023, [−0.048, +0.001]. Unaided validity +0.022, unresolved. Arithmetic probe: 258 kills against 206, no drift.
 
@@ -75,7 +75,9 @@ The gain replicated on an independent sample, curation and training run. Three t
 
 Style. The adapters write 4.7 to 4.9 tests per suite where the base writes 7.7, and 85 to 89 percent of their asserts are exact-value literals where the base's are 72 percent. Fewer membership asserts, fewer truncated suites. Under a harness that fills literals, that is the optimal style, and the harness rewrote about twice as many values per suite as it did for the base. What remained invalid after filling fell from 89 suites to 62 and 56.
 
-Unaided validity did not resolve. The model did not learn to predict outputs. It learned to write suites the harness can complete, and to choose inputs that exercise more of the code. The small loss in mutation score on functions both arms get valid is the price of shorter suites, and the net over all functions is the six points.
+Unaided validity did not resolve. The model did not learn to predict outputs. It learned to write suites the harness can complete, and to choose inputs that exercise more of the code. The loss in mutation score is the price of shorter suites: on the suites each arm gets valid, the adapters kill 0.826 and 0.811 of the live mutants where the base kills 0.842, and on the 202 functions both arms get valid the paired difference is −0.023. The net over all functions is the six points, and it is all validity.
+
+*Correction, 14 September 2026.* The first version of this table listed 0.868 and 0.843 in the mutation-score column for the two adapters. Those were the mutation scores of the suites valid as written, copied from the wrong field of the run summary. The grounded column now shows the values on grounded-valid suites, which the grounded score divides into exactly. Two reviewers caught it by checking that grounded validity times mutation score equals the grounded score, which it now does on every row.
 
 I want to say plainly what this is and is not. It is a replicated, pre-registered, six-point gain in mutants caught per function, under the harness, over the same model prompted. It is not evidence that a 4B model learned execution prediction, and the blog post that claimed it was would be wrong.
 
