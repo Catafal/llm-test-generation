@@ -9,7 +9,10 @@ with a measured comparison against prompting.
 - Same model, three conditions: zero-shot, few-shot, LoRA fine-tune.
   Equal budget, same held-out functions, paired comparison.
 
-Status: five fine-tuning iterations done; results in `docs/results/weekend-2.md`, model card in `docs/model-card.md`.
+Status: five fine-tuning iterations done; results in `docs/results/weekend-2.md`,
+model card in `docs/model-card.md`, demo in `docs/demo.md`.
+
+![grounded score per arm, test split n=315](docs/figures/results.png)
 
 ## Layout
 

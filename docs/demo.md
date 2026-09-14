@@ -1,7 +1,9 @@
 # 90-second demo
 
-One held-out function. The base model and the fine-tuned model each write a
-pytest suite. The harness runs both against the correct function, fills the
+One held-out function, shown as a terminal UI (rich panels, spinners while
+the models write and the harness runs, a scoreboard, a diff of the mutant
+only the fine-tune caught). The base model and the fine-tuned model each
+write a pytest suite. The harness runs both against the correct function, fills the
 expected values by execution, then runs them against every mutant. Kill
 counts side by side, and one mutant only the fine-tuned suite catches.
 
@@ -9,7 +11,11 @@ counts side by side, and one mutant only the fine-tuned suite catches.
 make demo PICK=1                                   # functions where the fine-tune catches more
 make demo ID="NanmiCoder/open-image-prompts:retrieval/engine.py::weighted_tag_similarity"
 make demo ID="…" FROM_RUNS=1                       # replay the scored generations (no model load)
+make adapters-pull                                 # fresh clone: fetch the adapters from the HF Hub
 ```
+
+Figures for the README and the post: `make figure` → `docs/figures/results.png`
+(grounded score per arm, paired 95% CI) and `docs/figures/devcurves.png`.
 
 Live generation loads the base (~30 s), generates greedily under the
 evaluation budget, then loads the adapter and generates again. Total about

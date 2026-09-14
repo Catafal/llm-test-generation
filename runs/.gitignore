@@ -2,3 +2,6 @@
 !*/
 !.gitignore
 !*/manifest.json
+# D032 demo replay: the two scored generation files behind the headline comparison
+!baselines-test-bf16base-grounded-20260910T203314Z/outputs.jsonl
+!baselines-test-finetune-20260914T115239Z/outputs.jsonl
