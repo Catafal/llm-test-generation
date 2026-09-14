@@ -67,6 +67,24 @@ family and decontaminated in three layers.
 - **Results document with every number:** [`docs/results/weekend-2.md`](docs/results/weekend-2.md).
 - **Charts:** [`docs/charts/`](docs/charts/README.md), generated from the run artifacts by `make charts`.
 - **Research trail:** [`docs/research/`](docs/research/), one folder per decision.
+- **Decision log:** [`docs/decisions.md`](docs/decisions.md), all 38 decisions in order,
+  with the options rejected and the reason, including the three that were overturned.
+
+## How this was built
+
+I built this with Claude Code in a paired session over nine days, and the
+commit trailers say so. The split was fixed on day two and held: the
+architecture, every choice between options, the pre-registered success
+rules, when to stop, and what to publish were mine; the implementation, the
+research summaries and the first drafts were the assistant's, and I reviewed
+what went in. Each decision is logged with the options on the table and the
+reason for the choice, in [`docs/decisions.md`](docs/decisions.md). Three of
+them were overturned, two by external reviewers and one by a control run I
+had not thought to ask for, and the log keeps them as written.
+
+I had not fine-tuned a model before 6 September. The series in
+[`docs/the-harness/`](docs/the-harness/index.md) is the record of what that
+took, including the three iterations that failed and why.
 
 ## Run it
 
