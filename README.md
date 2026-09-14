@@ -9,7 +9,7 @@ with a measured comparison against prompting.
 - Same model, three conditions: zero-shot, few-shot, LoRA fine-tune.
   Equal budget, same held-out functions, paired comparison.
 
-Status: evaluation harness in progress. No training has run.
+Status: five fine-tuning iterations done; results in `docs/results/weekend-2.md`, model card in `docs/model-card.md`.
 
 ## Layout
 
