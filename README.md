@@ -9,10 +9,15 @@ with a measured comparison against prompting.
 - Same model, three conditions: zero-shot, few-shot, LoRA fine-tune.
   Equal budget, same held-out functions, paired comparison.
 
-Status: five fine-tuning iterations done; results in `docs/results/weekend-2.md`,
-model card in `docs/model-card.md`, demo in `docs/demo.md`.
+Status: five fine-tuning iterations done. Read it as a series in
+[`docs/the-harness/`](docs/the-harness/index.md) (five experiments and a
+closing note), or go straight to the results (`docs/results/weekend-2.md`),
+the model card (`docs/model-card.md`), the demo (`docs/demo.md`) and the
+charts (`docs/charts/`).
 
-![grounded score per arm, test split n=315](docs/figures/results.png)
+![Where the fine-tune finally moved: grounded score per arm, test split n=315, paired 95% CI](docs/charts/results.png)
+
+![Execution fills the values: 28 points before any fine-tune](docs/charts/harness.png)
 
 ## Layout
 

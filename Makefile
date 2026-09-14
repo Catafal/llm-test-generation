@@ -82,6 +82,9 @@ models-rm:        ## delete models: KEYS="4b" or ALL=1 to free everything
 clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the pool is frozen)
 	rm -rf .cache/harvest
 
+charts:           ## editorial charts (Lieflat grammar, wire palette) -> docs/charts/*.html + .png
+	uv run python -m testgen.charts
+
 figure:           ## results.png + devcurves.png under docs/figures from run artifacts
 	uv run python -m testgen.figure
 

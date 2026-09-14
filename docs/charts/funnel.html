@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The funnel, poured: 169,000 rows to 12,000 examples</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0F0EE;--ink:#1F1E1C;--muted:rgba(31,30,28,.60);--faint:rgba(31,30,28,.32);--grid:rgba(31,30,28,.16)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--ink);padding:40px;-webkit-font-smoothing:antialiased}
+.card{background:var(--bg);border-radius:24px;padding:28px 28px 20px;max-width:720px;margin:0 auto}
+h2{font-weight:700;font-size:16.5px;letter-spacing:-.02em;margin-bottom:3px}
+.sub{font-size:11.5px;color:var(--muted);margin-bottom:14px}
+.src{font-size:9.5px;color:var(--faint);margin-top:10px;letter-spacing:.08em;font-weight:500}
+svg{width:100%;max-height:684px;display:block;margin:0 auto}
+svg text{font-family:'Inter',sans-serif}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.2,.7,.3,1.3) both}
+@keyframes pop{from{transform:scale(0)}to{transform:none}}
+.fade{animation:fade .9s ease both}
+@keyframes fade{from{opacity:0}}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1s cubic-bezier(.4,0,.2,1) both}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.pop,.fade{animation:none}.draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}}
+</style></head><body>
+<div class="card">
+<h2>The funnel, poured: 169,000 rows to 12,000 examples</h2>
+<div class="sub">KodCode-V1 through the project's own harness · purity and mutant floor, then execution against the solution and its mutants, then decontamination and the token cap</div>
+<svg id="ch" viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="src">HOURGLASS STREAM · WIRE · TESTGEN/TRAIN/CURATE_EXT.PY · DATA/TRAIN/EXT12K/YIELD.JSON</div>
+</div>
+<script>
+const BG='#F0F0EE',TXT='#1F1E1C',MUT='rgba(31,30,28,.60)',LAB='rgba(31,30,28,.72)',FAINT='rgba(31,30,28,.32)';
+const FLOOR='rgba(31,30,28,.24)',GRID='rgba(31,30,28,.16)',DATA='#22211F',DATA2='#8F8E86',HERO='#F5572F';
+const FAINTDATA='#C0BFB7',BEAD='#8F8E86',PAPER=BG,INK=DATA;
+const NS='http://www.w3.org/2000/svg';
+const el=(p,t,a)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);p.appendChild(n);return n};
+const txt=(p,a,s)=>{const n=el(p,'text',a);n.textContent=s;return n};
+const tip=(n,s)=>{const t=document.createElementNS(NS,'title');t.textContent=s;n.appendChild(t)};
+const rnd=(i,k)=>Math.abs(((i*73856093)^(k*19349663))%1000)/1000;
+const obsReveal=(id,fn)=>{const n=document.getElementById(id);const go=()=>{n.innerHTML='';fn(n)};
+  const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){go();io.disconnect()}},{threshold:.3});
+  io.observe(n);n.style.cursor='pointer';n.addEventListener('click',go)};
+const D=[["ROWS, FIVE SUBSETS", 169000], ["ONE PURE FN \u00b7 8+ MUTANTS", 44527], ["SAMPLED TO EXECUTE", 24000], ["PASS + KILL A MUTANT", 21085], ["FIT 1,024 TOK \u00b7 DEDUPED", 13429], ["KEPT FOR TRAINING", 12000]];
+
+obsReveal('ch',s=>{
+  const CXm=150,sy=k=>30+k*56,W0=D[0][1],w=c=>c/W0*250;
+  D.forEach(([name,c],k)=>{
+    const y=sy(k),hw=w(c)/2,last=k===D.length-1,ink=last?HERO:DATA;
+    const n=Math.max(6,Math.round(c/1600));
+    for(let t=0;t<n;t++){
+      const x=CXm-hw+(t+.5)/n*hw*2+(rnd(t+1,k+3)-.5)*3;
+      el(s,'line',{x1:x,y1:y-6,x2:x,y2:y+6,stroke:ink,'stroke-width':1.2,opacity:.55+rnd(t+2,k+5)*.45,class:'fade',style:`animation-delay:${k*.12+t*.004}s`});
+    }
+    if(k<D.length-1){
+      const hw1=w(D[k+1][1])/2;
+      for(let t=0;t<34;t++){
+        const xt=CXm+(rnd(t+1,k*7+1)-.5)*2*hw*.94,xb=CXm+(rnd(t+3,k*7+5)-.5)*2*hw1*.94;
+        el(s,'path',{d:`M${xt} ${y+8} C${xt} ${y+30} ${xb} ${sy(k+1)-30} ${xb} ${sy(k+1)-8}`,fill:'none',stroke:DATA2,'stroke-width':.8,opacity:.4,pathLength:1,class:'draw',style:`animation-delay:${.2+k*.15+t*.008}s;animation-duration:.8s`});
+      }
+      const pct=Math.round(D[k+1][1]/c*100);
+      txt(s,{x:14,y:(y+sy(k+1))/2+3,'font-size':8.5,'font-weight':800,fill:DATA2,class:'fade',style:`animation-delay:${.5+k*.15}s`},pct+'%');
+      txt(s,{x:14,y:(y+sy(k+1))/2+13,'font-size':5.6,'font-weight':600,fill:FAINT,'letter-spacing':'.08em',class:'fade',style:`animation-delay:${.5+k*.15}s`},'GET THROUGH');
+    }
+    el(s,'line',{x1:CXm+hw+6,y1:y,x2:290,y2:y,stroke:GRID,'stroke-width':.8,class:'fade',style:`animation-delay:${.3+k*.12}s`});
+    txt(s,{x:294,y:y-1,'font-size':6.4,'font-weight':700,fill:LAB,'letter-spacing':'.06em',class:'fade',style:`animation-delay:${.35+k*.12}s`},name);
+    txt(s,{x:294,y:y+10,'font-size':9.5,'font-weight':800,fill:last?HERO:TXT,class:'fade',style:`animation-delay:${.4+k*.12}s`},c.toLocaleString());
+  });
+  txt(s,{x:200,y:352,'font-size':7,'font-weight':600,fill:FAINT,'text-anchor':'middle','letter-spacing':'.12em',class:'fade',style:'animation-delay:1.2s'},
+    'ONE TICK ≈ 1,600 ROWS · WIDTH = ROWS AT THAT STAGE · SAMPLING IS A SEEDED DRAW');
+});
+</script></body></html>
