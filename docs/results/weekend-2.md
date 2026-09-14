@@ -294,6 +294,12 @@ rule fixed before the run:** the style is worth the six points and
 prompting for it gets all of them; the adapters match the prompt and do
 not beat it.
 
+**Embedding decontamination of the 12k set (2026-09-14).** Run after
+peer review: 2 of 11,756 rows flagged at cosine ≥ 0.90 vs held-out (both
+`rgb_to_hex`), 9 in the 0.80–0.90 review band; 4 held-out functions
+touched; rows not removed from the trained set; report in
+`data/train/ext12k/DECONTAMINATION-embeddings.md`.
+
 ## What five iterations settle
 
 Three signals (execution-corrected literals, the model's own pass/fail

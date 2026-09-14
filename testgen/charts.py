@@ -214,7 +214,7 @@ obsReveal('ch',s=>{
 });"""
     return _page(
         "results",
-        "Where the fine-tune finally moved",
+        "The prompt for the teacher's style beat the fine-tune",
         "grounded score = mutants caught per function, 0 if the suite fails after the harness fills values · test split, 315 functions, Qwen3.5-4B · orange = the base, prompted for short exact-value suites",
         "TICK ROWS · WIRE · RUNS/BASELINES-TEST-* · PAIRED BOOTSTRAP, 2,000 RESAMPLES",
         data,
@@ -333,7 +333,7 @@ obsReveal('ch',s=>{
 });"""
     return _page(
         "styles",
-        "What the fine-tune learned: the teacher's style",
+        "The style the harness rewards, learned or asked for",
         "share of asserts by kind across all 315 generated suites · exact-value literals are the ones the harness can fill · orange = the shipped adapter",
         "STACKED RUNGS · WIRE · TESTGEN/TRAIN/ORACLE.ASSERTION_STYLES",
         data,
