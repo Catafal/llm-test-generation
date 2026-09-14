@@ -85,6 +85,9 @@ clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the poo
 charts:           ## editorial charts (Lieflat grammar, wire palette) -> docs/charts/*.html + .png
 	uv run python -m testgen.charts
 
+failures:         ## D038: bucket the tests still failing after the fill; RUN=runs/<grounded run> [OUT=file]
+	uv run python -m testgen.failures $(RUN) $(if $(OUT),--out $(OUT))
+
 figure:           ## results.png + devcurves.png under docs/figures from run artifacts
 	uv run python -m testgen.figure
 

@@ -16,7 +16,9 @@ the style; asking for the style is worth more. Four earlier iterations on
 the model's own outputs did not move the metric, each measured down to its
 mechanism, and the harness itself is the largest effect in the repo:
 filling values by execution lifts validity from 0.44 to 0.72 before any
-prompt or weight changes.
+prompt or weight changes. The rule the project leaves behind: when the
+model lacks a capability the task needs, give the job to a tool; when the
+gap is style, prompt first, and fine-tune only if the prompt cannot reach it.
 
 | arm (Qwen3.5-4B, test n = 315, grounded harness) | grounded validity | mutation score on grounded-valid | grounded score | Δ vs base zero-shot, 95% CI |
 |---|---|---|---|---|
