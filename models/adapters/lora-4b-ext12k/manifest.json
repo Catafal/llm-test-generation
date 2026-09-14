@@ -1,0 +1,30 @@
+{
+ "config": "configs/lora-4b-ext12k.yaml",
+ "config_sha256": "7f2f1fc4116d05f7e0e368572ab108a3b480d410e7b2619cce8c32ffe5be5cf3",
+ "model": "mlx-community/Qwen3.5-4B-bf16",
+ "data": "data/train/ext12k",
+ "train_sha256": "8604ea276aa3ed8862219d9c6ccff51a323a07a005d47c1179db086de4b99b26",
+ "num_layers": 16,
+ "lora_parameters": {
+  "keys": [
+   "self_attn.q_proj",
+   "self_attn.k_proj",
+   "self_attn.v_proj",
+   "self_attn.o_proj",
+   "linear_attn.in_proj_qkv",
+   "linear_attn.in_proj_z",
+   "linear_attn.in_proj_a",
+   "linear_attn.in_proj_b",
+   "linear_attn.out_proj",
+   "mlp.gate_proj",
+   "mlp.up_proj",
+   "mlp.down_proj"
+  ],
+  "rank": 16,
+  "scale": 2.0,
+  "dropout": 0.05
+ },
+ "iters": 11400,
+ "seed": 0,
+ "git_sha": "b0a33864417445ca117147fb4b52adb0c3f3cbc3"
+}
