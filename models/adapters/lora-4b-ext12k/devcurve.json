@@ -1,0 +1,27 @@
+{
+ "0002400": {
+  "run": "baselines-dev-lora-4b-ext12k-ckpt0002400-20260914T092848Z",
+  "validity": 0.43859649122807015,
+  "mutation_score": 0.8437174035743659,
+  "grounded_score": 0.645562747134591
+ },
+ "0004800": {
+  "run": "baselines-dev-lora-4b-ext12k-ckpt0004800-20260914T100440Z",
+  "validity": 0.40350877192982454,
+  "mutation_score": 0.8429607349748229,
+  "grounded_score": 0.5958771331478007
+ },
+ "0007200": {
+  "run": "baselines-dev-lora-4b-ext12k-ckpt0007200-20260914T104325Z",
+  "validity": 0.4444444444444444,
+  "mutation_score": 0.8557951170263145,
+  "grounded_score": 0.6331866069582023
+ },
+ "0009600": {
+  "run": "baselines-dev-lora-4b-ext12k-ckpt0009600-20260914T111721Z",
+  "validity": 0.45614035087719296,
+  "mutation_score": 0.8290207382767781,
+  "grounded_score": 0.5958975716195059
+ },
+ "best": "0002400"
+}
