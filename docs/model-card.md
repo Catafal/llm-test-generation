@@ -8,7 +8,7 @@ real-world functions with paired statistics, pre-registered.
 | | |
 |---|---|
 | Base model | `mlx-community/Qwen3.5-4B-bf16` (hybrid Gated DeltaNet + attention, 4.2B) |
-| Adapters | `models/adapters/lora-4b-ext/ckpt-0003200` (4,000 examples), `models/adapters/lora-4b-ext12k/ckpt-0002400` (12,000 examples) |
+| Adapters | [`jorcagra/qwen3.5-4b-testgen-lora-ext12k`](https://huggingface.co/jorcagra/qwen3.5-4b-testgen-lora-ext12k) (12,000 examples, ckpt 2400) and [`jorcagra/qwen3.5-4b-testgen-lora-ext4k`](https://huggingface.co/jorcagra/qwen3.5-4b-testgen-lora-ext4k) (4,000 examples, ckpt 3200); locally `models/adapters/lora-4b-ext12k/ckpt-0002400` and `models/adapters/lora-4b-ext/ckpt-0003200` |
 | Method | LoRA rank 16, scale 2.0, dropout 0.05, all linear projections of the last 16 of 32 layers, completion-only loss, seq 1,024, LR 1e-4 cosine, one epoch |
 | Training data | KodCode-V1 (GPT-4o solutions and tests), curated through this repo's harness |
 | Licence | Adapters: **CC BY-NC 4.0** (inherited from KodCode). Code: see repo LICENSE. Non-commercial. |
@@ -34,14 +34,17 @@ baked into the suite).
 ## How to use
 
 ```bash
-make setup && make sync-models && make models-pull KEYS="4b-bf16"
+make setup && make sync-models && make models-pull KEYS="4b-bf16"   # base model (public, mlx)
+make adapters-pull                                                   # both adapters from the Hub
+make demo ID="NanmiCoder/open-image-prompts:retrieval/engine.py::weighted_tag_similarity" FROM_RUNS=1
 # score the adapter on the held-out test split, oracle-filled in both arms
 make eval ADAPTER=models/adapters/lora-4b-ext12k/ckpt-0002400 GROUNDED=1
 make baselines POOL=test MODELS=4b-bf16 CONDITIONS=zero,few   # the base arms
 uv run python -m testgen.stats --grounded <outputs.jsonl> 4b/zero 4b/few
 ```
 
-Prompt, budget and decoding are fixed by `testgen/generate/prompts.py` and
+Generation needs Apple Silicon (mlx); the harness, statistics, figures and
+the replay demo run anywhere. Prompt, budget and decoding are fixed by `testgen/generate/prompts.py` and
 `config.py`: 2,048 new tokens, at most 8 tests per suite, greedy, thinking
 off. Every arm in every table below used the same.
 

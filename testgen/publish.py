@@ -3,6 +3,9 @@
     uv run python -m testgen.publish push [--user <hf user>]    # needs `hf auth login`
     uv run python -m testgen.publish pull [--user <hf user>]    # anonymous download
 
+Published 2026-09-14 as https://huggingface.co/jorcagra/qwen3.5-4b-testgen-lora-ext12k
+and .../qwen3.5-4b-testgen-lora-ext4k (public, CC BY-NC 4.0).
+
 Each adapter becomes one model repo <user>/<name> holding the checkpoint's
 ``adapters.safetensors`` + ``adapter_config.json`` (mlx-lm format), the
 training manifest, and a README made of a YAML header (base model, licence
@@ -21,6 +24,7 @@ from huggingface_hub import HfApi, snapshot_download, whoami
 
 from config import ROOT
 
+HF_USER = "jorcagra"  # the account the adapters live under; --user overrides
 ADAPTERS = {
     # hub repo name -> (local run dir, checkpoint step)
     "qwen3.5-4b-testgen-lora-ext12k": ("lora-4b-ext12k", "0002400"),
@@ -84,10 +88,11 @@ def pull(user: str) -> int:
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("action", choices=["push", "pull"])
-    ap.add_argument("--user", default="", help="Hub user; default: the logged-in account")
+    ap.add_argument("--user", default=HF_USER, help=f"Hub user (default {HF_USER})")
     args = ap.parse_args(argv)
-    user = args.user or whoami()["name"]
-    return (push if args.action == "push" else pull)(user)
+    if args.action == "push":
+        print(f"logged in as {whoami()['name']}; pushing to {args.user}")
+    return (push if args.action == "push" else pull)(args.user)
 
 
 if __name__ == "__main__":
