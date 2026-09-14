@@ -27,7 +27,7 @@ unresolved at this sample size; the point estimate is negative.
 | Arm | Validity | Mutation score, valid suites | Mean tokens | Tests generated | Truncated |
 |---|---|---|---|---|---|
 | bf16 base, zero-shot | 0.438 | 0.862 | 758 | 12.2 | 31 |
-| bf16 base, few-shot | 0.419 | 0.889 | 442 | 6.5 | 1 |
+| bf16 base, few-shot | 0.420 | 0.889 | 442 | 6.5 | 1 |
 | 4-bit base, zero-shot (weekend 1) | 0.400 | 0.869 | | | |
 | 4-bit base, best-of-4 + reference filter, first 100 fns | 0.540 | 0.819 | 2649 (4 samples) | | |
 | **Fine-tune, checkpoint 120, zero-shot** | **0.397** | **0.862** | 537 | 8.1 | 15 |
@@ -106,7 +106,7 @@ with `mlx-lm-lora` (rank 8, last 16 layers, beta 0.1, lr 5e-6, 2 epochs,
 | Arm | Validity | Mutation score, valid suites | Mean tokens |
 |---|---|---|---|
 | bf16 base, zero-shot | 0.438 | 0.862 | 758 |
-| bf16 base, few-shot | 0.419 | 0.889 | 442 |
+| bf16 base, few-shot | 0.420 | 0.889 | 442 |
 | SFT (iteration 1), checkpoint 120 | 0.397 | 0.862 | 537 |
 | **DPO (iteration 2), checkpoint 900** | **0.441** | **0.874** | 548 |
 

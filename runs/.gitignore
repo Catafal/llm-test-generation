@@ -2,7 +2,11 @@
 !*/
 !.gitignore
 !*/manifest.json
-# D032 demo replay: the two scored generation files behind the headline comparison
+# The eight test-split generation files behind the README table: demo replay and `make charts`
+!baselines-test-bf16base-few-grounded-20260910T205151Z/outputs.jsonl
+!baselines-test-finetune-grounded-20260910T211110Z/outputs.jsonl
+!baselines-test-finetune-20260911T075927Z/outputs.jsonl
+!baselines-test-finetune-20260912T130009Z/outputs.jsonl
 !baselines-test-bf16base-grounded-20260910T203314Z/outputs.jsonl
 !baselines-test-finetune-20260914T115239Z/outputs.jsonl
 !baselines-test-control-teacher-20260914T143758Z/outputs.jsonl

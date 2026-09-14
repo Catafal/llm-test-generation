@@ -7,6 +7,12 @@ write a pytest suite. The harness runs both against the correct function, fills 
 expected values by execution, then runs them against every mutant. Kill
 counts side by side, and one mutant only the fine-tuned suite catches.
 
+What the demo shows is the harness at work and what the fine-tune changed
+in the writing. It is not the headline: across the 315 test functions the
+base model under the style prompt scores above both adapters with no
+training, and on this function it kills 25 of 35 against the adapter's 33.
+This function was picked because the adapter's gain is visible on it.
+
 ```bash
 make demo PICK=1                                   # functions where the fine-tune catches more
 make demo ID="NanmiCoder/open-image-prompts:retrieval/engine.py::weighted_tag_similarity"
@@ -40,13 +46,18 @@ really runs" proof; the replay is the evidence.
 4. **A mutant only the fine-tuned suite catches:** one tag name in the
    `important` set is corrupted. The base's inputs never used that tag; the
    fine-tuned suite's inputs did.
-5. **Close.** Across 315 held-out functions this is +6 points of mutants
-   caught per function, replicated twice, interval excluding zero. The
-   model did not learn to predict outputs; it learned to write suites the
-   harness can complete, and to choose inputs that exercise the code.
+5. **Close.** Across 315 held-out functions the adapter is +6 points of
+   grounded score over zero-shot, replicated twice, interval excluding
+   zero. The model did not learn to predict outputs; it learned to write
+   suites the harness can complete. And a paragraph of system prompt
+   teaches the base the same style for +7.6, so the thing to ship is the
+   harness and the prompt, not the adapter.
 
 ## What the demo does not claim
 
 The fine-tuned suite as written also fails on the correct function (two
 wrong values). Without the harness neither arm is reliably valid. The
 demo shows the product setting the adapters were selected for, and says so.
+It does not show the control, which beats both adapters on the test split;
+the function was chosen to make the adapter's gain visible, not because it
+is typical.

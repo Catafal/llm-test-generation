@@ -2,20 +2,24 @@
 
 Can a 4B model learn to write pytest suites that expose bugs, measured against
 the same model prompted, on 315 real functions written after its training
-cutoff? Two weeks, one Mac, five fine-tuning iterations, every decision logged.
+cutoff? Nine days, one Mac, six fine-tuning runs and a control, every decision logged.
 
 **Result, in order of what moved the metric.**
 
 1. **The harness.** Filling expected values by executing the function: validity 0.44 to 0.72, no training, every arm.
-2. **A paragraph of system prompt.** The base asked for short suites of exact-value asserts: +0.076 mutants caught per function over zero-shot [+0.034, +0.118], the fastest arm in the series.
+2. **A paragraph of system prompt.** The base asked for short suites of exact-value asserts: +0.076 grounded score over zero-shot [+0.034, +0.118], the fastest arm in the series.
 3. **12,000 teacher examples.** Fine-tuning on execution-verified GPT-4o data: +0.062 [+0.015, +0.106], and −0.014 against the prompt with an interval including zero. Same style, slower, nothing on top.
 4. **The model's own outputs**, four ways: nothing that resolved, each measured down to its mechanism.
 
-The fine-tune is not wrong, it is redundant. The rule the project leaves
+The fine-tune is not wrong, it is redundant. The production answer for this
+task is the harness and the prompt, with no training. The rule the project leaves
 behind: when the model lacks a capability the task needs, give the job to a
 tool; when the gap is style, prompt first, and fine-tune only if the prompt
 cannot reach it. Every number below is paired over the same 315 post-cutoff
-functions, and the fine-tune rows were pre-registered before they ran.
+functions, and the fine-tune rows were pre-registered before they ran. One base arm is
+compared eight times across the series with no multiplicity correction;
+corrected, the adapters' lower bounds would not clear zero and the control's
+still would.
 
 | arm (Qwen3.5-4B, test n = 315, grounded harness) | grounded validity | mutation score on grounded-valid | grounded score | Δ vs base zero-shot, 95% CI |
 |---|---|---|---|---|
@@ -78,7 +82,7 @@ uv run python -m testgen.stats --grounded runs/<run>/outputs.jsonl 4b/zero 4b/fe
 Generation needs Apple Silicon (mlx). The harness, statistics, charts and the
 replay demo run anywhere. Every run writes a manifest (git sha, model,
 budget, results) and the manifests are committed; raw generations are not,
-except the two behind the headline comparison.
+except the eight test-split runs behind the table above.
 
 ## Layout
 

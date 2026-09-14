@@ -53,9 +53,9 @@ Test, 315 functions, grounded harness in both arms:
 
 The lower bound clears zero. Against few-shot, +0.064 on [+0.016, +0.114]. Grounded validity +0.086, McNemar p = 0.002, with 51 functions valid only for the fine-tune and 24 only for the base. Mutation score on the 202 both-valid functions −0.023, [−0.048, +0.001]. Unaided validity +0.022, unresolved. Arithmetic probe: 258 kills against 206, no drift.
 
-The bar was met. Then I ran the second point.
+The bar was met. Then I ran the second point. The ladder's stop rule was for its stages, and stage one had resolved, so stages two and three were off. The second point was a scale question inside stage one, registered before it ran: the yield table said the same pipeline had 12,000 rows at the same quality bar, and the first objection to a 4,000-example result is that it is small.
 
-![Where the fine-tune finally moved: grounded score per arm with paired CIs](../charts/results.png)
+![The prompt for the teacher's style beat the fine-tune: grounded score per arm with paired CIs](../charts/results.png)
 
 ![The functions that changed hands](../charts/discordant.png)
 
@@ -97,7 +97,7 @@ Unaided validity did not resolve. The model did not learn to predict outputs. It
 
 *Correction, 14 September 2026.* The first version of this table listed 0.868 and 0.843 in the mutation-score column for the two adapters. Those were the mutation scores of the suites valid as written, copied from the wrong field of the run summary. The grounded column now shows the values on grounded-valid suites, which the grounded score divides into exactly. Two reviewers caught it by checking that grounded validity times mutation score equals the grounded score, which it now does on every row.
 
-I want to say plainly what this is and is not. It is a repeated, pre-registered, six-point gain in mutants caught per function, under the harness, over the same model prompted zero-shot, and it is matched by a system prompt. It is not evidence that a 4B model learned execution prediction, and it is not evidence that fine-tuning was needed.
+What this is and is not: it is a repeated, pre-registered, six-point gain in mutants caught per function, under the harness, over the same model prompted zero-shot, and it is matched by a system prompt. It is not evidence that a 4B model learned execution prediction, and it is not evidence that fine-tuning was needed.
 
 ![What the fine-tune learned: the teacher's style](../charts/styles.png)
 
@@ -122,7 +122,7 @@ make adapters-pull
 make demo ID="NanmiCoder/open-image-prompts:retrieval/engine.py::weighted_tag_similarity" FROM_RUNS=1
 ```
 
-The adapters are on the Hub under `jorcagra/qwen3.5-4b-testgen-lora-ext12k` and `-ext4k`, with the model card as their README. The two generation files behind the headline comparison are committed, so the demo replays the exact suites the numbers came from without a model. Generation itself needs Apple Silicon; everything else runs anywhere.
+The adapters are on the Hub under `jorcagra/qwen3.5-4b-testgen-lora-ext12k` and `-ext4k`, with the model card as their README. The eight test-split generation files behind the tables are committed, so the demo replays the exact suites the numbers came from without a model. Generation itself needs Apple Silicon; everything else runs anywhere.
 
 ## What I take from this
 

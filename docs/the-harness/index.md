@@ -2,7 +2,7 @@
 
 A 4B model, fine-tuned to write pytest suites that expose bugs, measured against the same model prompted, on 315 functions it could not have seen. Five iterations. Four of them did not move the metric, and each was measured down to its mechanism before the next one started. None of the four was powered to rule out a small effect; what closed them was the mechanism, not the interval. The lever, when it finally moved, was not the recipe, and a control run after peer review showed it was not the data either: the base model prompted for the style the adapters had learned scored higher than the adapters. In order of what moved the metric: the harness, then a paragraph of prompt, then twelve thousand teacher examples that added nothing on top of it, then four rounds of self-training that added nothing at all.
 
-![Where the fine-tune finally moved](../charts/results.png)
+![The prompt for the teacher's style beat the fine-tune](../charts/results.png)
 
 Charts are generated from the run artifacts by `make charts` (`docs/charts/`, interactive HTML plus PNG). The model card is `docs/model-card.md`, the demo is `docs/demo.md`, and every number traces to `docs/results/weekend-2.md`.
 

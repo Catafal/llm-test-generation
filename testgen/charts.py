@@ -335,7 +335,7 @@ obsReveal('ch',s=>{
     return _page(
         "styles",
         "The style the harness rewards, learned or asked for",
-        "share of asserts by kind across all 315 generated suites · exact-value literals are the ones the harness can fill · orange = the shipped adapter",
+        "share of asserts by kind across all 315 generated suites · exact-value literals are the ones the harness can fill · orange = the base under the style prompt",
         "STACKED RUNGS · WIRE · TESTGEN/TRAIN/ORACLE.ASSERTION_STYLES",
         data,
         script,

@@ -26,12 +26,14 @@ FIG_DIR = ROOT / "docs" / "figures"
 BASE = "baselines-test-bf16base-grounded-20260910T203314Z"
 # label -> run directory; order is the plotting order
 ARMS = {
-    "base zero-shot": BASE,
-    "base few-shot": "baselines-test-bf16base-few-grounded-20260910T205151Z",
+    "base\nzero-shot": BASE,
+    "base\nfew-shot": "baselines-test-bf16base-few-grounded-20260910T205151Z",
     "it.1 SFT\n388 self": "baselines-test-finetune-grounded-20260910T211110Z",
     "it.4 DPO\n645 self": "baselines-test-finetune-20260911T075927Z",
     "it.5 SFT\n4k KodCode": "baselines-test-finetune-20260912T130009Z",
     "it.5 SFT\n12k KodCode": "baselines-test-finetune-20260914T115239Z",
+    "12k + style\nprompt": "baselines-test-ext12k-teacher-20260914T152109Z",
+    "base + style\nprompt (control)": "baselines-test-control-teacher-20260914T143758Z",
 }
 DEV = {
     "4k KodCode": ROOT / "models" / "adapters" / "lora-4b-ext" / "devcurve.json",
@@ -61,7 +63,7 @@ def results_figure() -> Path:
         means.append(m)
         lo.append(m - (d["mean"] - d["ci95"][0]))
         hi.append(m + (d["ci95"][1] - d["mean"]))
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(10, 4))
     x = range(len(labels))
     colors = ["#888" if lab.startswith("base") else "#2a6f97" for lab in labels]
     ax.bar(x, means, color=colors, width=0.6)
@@ -79,7 +81,7 @@ def results_figure() -> Path:
     ax.axhline(means[0], color="#888", ls="--", lw=1)
     ax.set_xticks(list(x), labels, fontsize=9)
     ax.set_ylabel("grounded score (kills / live mutants, 0 if invalid)")
-    ax.set_ylim(0.5, 0.72)
+    ax.set_ylim(0.5, 0.74)
     ax.set_title("Qwen3.5-4B, test split n=315; bars = mean, whiskers = paired 95% CI vs base")
     for i, (m, b) in enumerate(zip(means, hi, strict=True)):
         ax.annotate(f"{m:.3f}", (i, b + 0.004), ha="center", fontsize=8)

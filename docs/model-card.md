@@ -22,8 +22,14 @@ Generate a pytest module for one pure, self-contained Python function, then
 executes the reference to fill `assert f(x) == <literal>` sites, and score it
 against mutants. The adapters were selected and evaluated only in that
 setting. Without the harness the adapters are statistically no better than
-the base at writing suites that pass as written (unaided validity 0.46 vs
-0.44, CI includes zero).
+the base at writing suites that pass as written (unaided validity 0.460 and 0.467 vs
+0.438, intervals including zero).
+
+**Prefer the prompt.** The base model under the style prompt
+(`SYSTEM_TEACHER` in `testgen/generate/prompts.py`, two exemplars) scores
+0.680 against the adapters' 0.664 and 0.667, with no training and half the
+latency. The adapters are a record of what the training did, not a
+recommendation.
 
 **Out of scope.** Functions with I/O, classes, fixtures, mocks, or external
 dependencies; languages other than Python; commercial use (licence);

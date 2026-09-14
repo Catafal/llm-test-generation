@@ -13,9 +13,9 @@ preset: greys carry the data, one orange element per chart is the point.
 
 | chart | says |
 |---|---|
-| [results](results.html) | grounded score per arm on the 315 test functions, paired 95% CI vs base zero-shot; the two KodCode adapters clear zero |
+| [results](results.html) | grounded score per arm on the 315 test functions, paired 95% CI vs base zero-shot; the base under the style prompt is the top arm and both adapters sit below it |
 | [harness](harness.html) | filling expected values by execution lifts every arm by ~28 validity points before any fine-tune |
 | [discordant](discordant.html) | how many functions become valid only under each arm vs only under the base; McNemar's two counts |
-| [styles](styles.html) | assertion mix per arm: the adapters write the teacher's style, 85–89% exact-value literals |
+| [styles](styles.html) | assertion mix per arm: the adapters and the prompted base write the teacher's style, 82–89% exact-value literals |
 | [devcurves](devcurves.html) | dev-171 grounded score per checkpoint for both adapters, base as the dashed floor |
 | [funnel](funnel.html) | KodCode curation, 169,000 rows poured down to 12,000 training examples |

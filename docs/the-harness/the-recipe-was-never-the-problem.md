@@ -4,7 +4,7 @@ Note · 14 September 2026 · reasoned, with one measurement · 7 min read
 
 **Summary.** Five iterations comparing prompting and fine-tuning on one task. I spent three of them trying to install a capability in a 4B model with a few hundred of its own examples, and one changing the task so the capability was not needed. The gain came from a style, which a prompt delivers without training; the harness did more than any fine-tune; and pre-registration saved me more often than it vindicated me.
 
-The project started as a work sample. The question a hiring manager would ask, I thought, was "can you fine-tune a small model and prove it got better?" The honest answer, after two weeks, is yes, and it was not worth doing. Ranked by what moved the metric, on the same 315 functions:
+The project started as a work sample. The question a hiring manager would ask, I thought, was "can you fine-tune a small model and prove it got better?" The honest answer, after nine days, is yes, and it was not worth doing. Ranked by what moved the metric, on the same 315 functions:
 
 1. The harness. Filling expected values by execution: 28 validity points, no training, every arm.
 2. A paragraph of system prompt: +0.076 over zero-shot, no training, the fastest arm.
@@ -19,7 +19,7 @@ The fine-tune is not wrong. It is redundant, and the proof took four failures an
 |---|---|---|---|---|---|
 | 1 | SFT on oracle-corrected suites | 388 | own | validity −0.041 [−0.098, +0.013] | no |
 | 2 | DPO on own pass/fail pairs | 497 | own | validity +0.003 [−0.048, +0.051] | no |
-| 3 | SFT on execution-trace scratchpads | 358 | own | validity +0.054 [−0.010, +0.114], kills −0.070 | no |
+| 3 | SFT on execution-trace scratchpads | 358 | own | validity +0.054 [−0.010, +0.114] vs the dense base (0.346, not the hybrid), kills −0.070 | no |
 | 4 | DPO on own grounded pairs, harness fills values | 645 | own | grounded score +0.024 [−0.013, +0.064] | no |
 | 5a | SFT, harness fills values | 4,000 | GPT-4o via KodCode | grounded score +0.059 [+0.013, +0.105] | yes |
 | 5b | same | 12,000 | same | grounded score +0.062 [+0.015, +0.106] | yes, and +0.003 over 5a |
@@ -27,7 +27,7 @@ The fine-tune is not wrong. It is redundant, and the proof took four failures an
 
 Rows 1 to 4 are one experiment repeated with a different signal each time. None of the four intervals excludes zero and none could have caught an effect under about five points, so they are unresolved rather than null; what closed each one was the mechanism measured on the generations, and the per-assert accuracy of expected values, the thing every one of them was aimed at, never moved. Row 5 is a different experiment: same recipe, different author of the data. The control row is what row 5 was worth: the style the data taught, asked for directly, with nothing trained.
 
-![Where the fine-tune finally moved](../charts/results.png)
+![The prompt for the teacher's style beat the fine-tune](../charts/results.png)
 
 ## Four things I would say to someone starting this
 
@@ -37,7 +37,7 @@ Rows 1 to 4 are one experiment repeated with a different signal each time. None 
 
 **Run the control a stranger would ask for before you publish.** Three reviewers read a draft that claimed six points for a fine-tune and asked the same question: did you prompt the base for the style the fine-tune learned? I had not. One generation run later the fine-tune was matched by a paragraph of system prompt. It was the cheapest run in the series and the one that changed the headline.
 
-**When the model cannot do the thing, ask whether the thing needs doing.** The harness filling expected values by execution was worth 28 validity points, which is more than any fine-tune in the series and more than the two shipped adapters combined. It was available from the first day. I did not take it until three iterations had failed, because I had framed the task as the model's job, and the reframing was a product decision I kept treating as a training one.
+**When the model cannot do the thing, ask whether the thing needs doing.** The harness filling expected values by execution was worth 28 validity points, and no fine-tune in the series moved validity by half of that. It was available from the first day. I did not take it until three iterations had failed, because I had framed the task as the model's job, and the reframing was a product decision I kept treating as a training one.
 
 ## The choice I got wrong on purpose
 
@@ -68,7 +68,7 @@ There is one argument left for the adapters, and I measured it because it is the
 | base, style prompt (control) | 738 | 262 | 4.0 |
 | 12k adapter, style prompt | 738 | 246 | 4.3 |
 
-The prompt costs 358 tokens of prefill and saves about 200 tokens of generation, and prefill is cheap where generation is not. The control is the fastest arm in the series as well as the best. So for this task, on this model, the production answer is the harness and the prompt, with no training, and the adapters are on the Hub as a record of what the training did rather than as a recommendation.
+The prompt costs 358 tokens of prefill and saves about 200 tokens of generation against the adapter and about 500 against zero-shot, and prefill is cheap where generation is not. The control is the fastest arm in the series as well as the best. So for this task, on this model, the production answer is the harness and the prompt, with no training, and the adapters are on the Hub as a record of what the training did rather than as a recommendation.
 
 ## What is left in the harness
 
@@ -94,11 +94,13 @@ Three levers come out of it, and they are not the same kind of thing.
 
 ## What I am not claiming
 
-Not that a 4B model learned to predict the outputs of code. Unaided validity moved from 0.438 to 0.467 across the whole series and never resolved. Everything the adapters gained, they gained under a harness that executes the function for them.
+Not that a 4B model learned to predict the outputs of code. No fine-tune resolved unaided validity: the adapters reach 0.460 and 0.467 from 0.438 with intervals including zero. The prompt did, 0.571, and it is the only thing in the series that moved it. Everything the adapters gained, they gained under a harness that executes the function for them.
 
 Not that scale is the lever. Twelve thousand examples did what four thousand did, and a prompt did what both did.
 
 Not that the adapters are useless. They match the prompt without needing it, which is a small convenience, and they are on the Hub with this row on their card.
+
+Not that the intervals survive correction untouched. One base arm is compared eight times across the series with no multiplicity correction; corrected, the adapters' lower bounds would not clear zero and the control's still would.
 
 Not that the harness is a free lunch. It snapshots the reference, so a wrong function gets a suite that enshrines the wrong behaviour, it fills only literal-equality asserts, and it cannot repair an input the function rejects. The 28 points come with that caveat attached, and the model card says so.
 
