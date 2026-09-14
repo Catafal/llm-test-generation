@@ -263,6 +263,20 @@ twice the point estimate. Data selection on mutation score favours simpler
 functions. A second training point (12,000 examples) would give a
 dose-response curve; not run.
 
+**Second point: 12,000 examples (2026-09-14).** Same recipe, same base,
+12,000 examples cut from 21,085 candidates (mean mutation score of the
+cut 0.937 vs 0.991 for the 4,000 cut), one epoch, checkpoint 2400 by
+dev-171 (0.646). Test: grounded score **0.667**, +0.062 [+0.015, +0.106]
+vs base zero-shot; grounded validity 0.822 (+0.105, p = 0.0002); unaided
+validity 0.467 (+0.029, unresolved); arith 259 kills. **Against the
+4,000-example adapter: +0.003 [−0.027, +0.034]**, grounded validity +0.019
+(p = 0.38), unaided +0.006. The gain replicates on an independent run and
+does not grow with three times the data. The 12k adapter needs less help
+from the harness (520 literals rewritten vs 798) and writes 4.7 tests per
+suite at 89% literal-equality asserts. Either the effect saturates at a
+few thousand examples of this kind, or the lower selection quality of the
+larger cut offsets its size; the two are confounded here.
+
 ## What five iterations settle
 
 Three signals (execution-corrected literals, the model's own pass/fail
@@ -271,8 +285,10 @@ per-assert value accuracy never moved. A fourth iteration removed values
 from the task and trained on grounded preferences; the gain is +0.024,
 unresolved at n=315. A fifth kept the harness and replaced the data with
 4,000 execution-verified frontier-teacher examples: +0.059 [+0.013,
-+0.105], resolved. Data source and scale were the lever; the recipe was
-never the problem. At a few hundred examples with LoRA,
++0.105], resolved, and replicated at 12,000 examples (+0.062 [+0.015,
++0.106]) with no further gain from the extra data. Data source was the
+lever; scale beyond a few thousand was not; the recipe was never the
+problem. At a few hundred examples with LoRA,
 a 4B model does not acquire execution prediction; the one published success
 at 3B used ~80M traces. The bottleneck is a base-model capability, not a
 recipe choice within this budget. The recipe, harness, decontaminated pools
