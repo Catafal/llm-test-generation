@@ -85,11 +85,11 @@ clean-harvest:    ## delete cloned repos under .cache/harvest (safe once the poo
 figure:           ## results.png + devcurves.png under docs/figures from run artifacts
 	uv run python -m testgen.figure
 
-adapters-push:    ## publish the shipped adapters to the HF Hub (needs `uv run hf auth login`); USER=
-	uv run --group models python -m testgen.publish push $(if $(USER),--user $(USER),)
+adapters-push:    ## publish the shipped adapters to the HF Hub (needs `uv run hf auth login`); HF_USER=
+	uv run --group models python -m testgen.publish push $(if $(HF_USER),--user $(HF_USER),)
 
-adapters-pull:    ## download the shipped adapters into models/adapters/ (fresh clone); USER=
-	uv run --group models python -m testgen.publish pull $(if $(USER),--user $(USER),)
+adapters-pull:    ## download the shipped adapters into models/adapters/ (fresh clone); HF_USER=
+	uv run --group models python -m testgen.publish pull $(if $(HF_USER),--user $(HF_USER),)
 
 demo:             ## 90-s demo: base vs fine-tune on one held-out fn; ID=<fn id> [FROM_RUNS=1] or PICK=1 to list
 	env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.demo $(if $(PICK),--pick,) $(if $(ID),--id "$(ID)",) $(if $(FROM_RUNS),--from-runs,)
