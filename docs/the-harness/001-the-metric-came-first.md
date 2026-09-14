@@ -1,6 +1,6 @@
 # The metric came first
 
-Experiment 001 · 7 September 2026 · measured · 14 min read
+Experiment 001 · 7 September 2026 · measured · 8 min read
 
 **Summary.** Before any training I built the thing that would judge it: a sandbox that runs a generated suite against the correct function and against dozens of deliberately broken copies, a pool of real-world functions written after the model's training cutoff, and paired statistics. The pilot said the metric could tell a good suite from a bad one. The baselines said validity, not bug-finding, was the headroom.
 

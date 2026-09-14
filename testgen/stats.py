@@ -44,27 +44,25 @@ def _short(model_id: str) -> str:
     return name
 
 
-GROUNDED = False  # set by --grounded: read scores from the oracle-filled suite
-
-
-def _sc(r: dict) -> dict | None:
-    if GROUNDED:
+def _sc(r: dict, grounded: bool) -> dict | None:
+    """The SuiteScore dict to read: the oracle-filled suite's (D030) or the unaided one."""
+    if grounded:
         return r["grounded"]["score"] if r.get("grounded") else None
     return r.get("score")
 
 
-def _valid(r: dict) -> bool:
-    s = _sc(r)
+def _valid(r: dict, grounded: bool = False) -> bool:
+    s = _sc(r, grounded)
     return bool(r["parsed"] and s and s["valid"])
 
 
-def _score(r: dict) -> float | None:
-    return _sc(r)["mutation_score"] if _valid(r) else None
+def _score(r: dict, grounded: bool = False) -> float | None:
+    return _sc(r, grounded)["mutation_score"] if _valid(r, grounded) else None
 
 
 def _grounded_score(r: dict) -> float:
-    """D030 primary metric: mutation score, 0 if invalid or unparsed."""
-    return _score(r) or 0.0
+    """D030 primary metric: mutation score of the filled suite, 0 if invalid or unparsed."""
+    return _score(r, grounded=True) or 0.0
 
 
 def mcnemar_exact(b: int, c: int) -> float:
@@ -87,16 +85,19 @@ def paired_bootstrap(
     return sum(diffs) / n, means[int(0.025 * reps)], means[int(0.975 * reps)]
 
 
-def compare(a: dict[str, dict], b: dict[str, dict], name_a: str, name_b: str) -> dict:
+def compare(
+    a: dict[str, dict], b: dict[str, dict], name_a: str, name_b: str, grounded: bool = False
+) -> dict:
+    """Paired comparison of two arms keyed by function id (see module docstring)."""
     ids = sorted(set(a) & set(b))
-    va = [_valid(a[i]) for i in ids]
-    vb = [_valid(b[i]) for i in ids]
+    va = [_valid(a[i], grounded) for i in ids]
+    vb = [_valid(b[i], grounded) for i in ids]
     only_a = sum(x and not y for x, y in zip(va, vb, strict=True))
     only_b = sum(y and not x for x, y in zip(va, vb, strict=True))
     v_mean, v_lo, v_hi = paired_bootstrap(
         [float(x) - float(y) for x, y in zip(va, vb, strict=True)]
     )
-    both = [i for i in ids if _valid(a[i]) and _valid(b[i])]
+    both = [i for i in ids if _valid(a[i], grounded) and _valid(b[i], grounded)]
     out = {
         "arms": f"{name_a} vs {name_b}",
         "n": len(ids),
@@ -107,10 +108,10 @@ def compare(a: dict[str, dict], b: dict[str, dict], name_a: str, name_b: str) ->
         "both_valid": len(both),
     }
     if both:
-        d = [_score(a[i]) - _score(b[i]) for i in both]
+        d = [_score(a[i], grounded) - _score(b[i], grounded) for i in both]
         s_mean, s_lo, s_hi = paired_bootstrap(d)
         out["mutation_score_diff_on_both_valid"] = {"mean": s_mean, "ci95": [s_lo, s_hi]}
-    if GROUNDED:
+    if grounded:
         ga = [_grounded_score(a[i]) for i in ids]
         gb = [_grounded_score(b[i]) for i in ids]
         g_mean, g_lo, g_hi = paired_bootstrap([x - y for x, y in zip(ga, gb, strict=True)])
@@ -120,13 +121,10 @@ def compare(a: dict[str, dict], b: dict[str, dict], name_a: str, name_b: str) ->
 
 
 def main(argv: list[str]) -> int:
-    global GROUNDED  # noqa: PLW0603  (one flag, read by three tiny helpers)
-    if "--grounded" in argv:
-        GROUNDED = True
-        argv = [a for a in argv if a != "--grounded"]
-    path, name_a, name_b = argv
+    grounded = "--grounded" in argv
+    path, name_a, name_b = [a for a in argv if a != "--grounded"]
     arms = load_arms(path)
-    print(json.dumps(compare(arms[name_a], arms[name_b], name_a, name_b), indent=1))
+    print(json.dumps(compare(arms[name_a], arms[name_b], name_a, name_b, grounded), indent=1))
     return 0
 
 

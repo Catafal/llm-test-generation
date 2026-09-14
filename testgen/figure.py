@@ -48,14 +48,13 @@ def _records(run: str) -> dict[str, dict] | None:
 
 
 def results_figure() -> Path:
-    stats.GROUNDED = True
     base = _records(BASE)
     labels, means, lo, hi = [], [], [], []
     for label, run in ARMS.items():
         recs = _records(run)
         if recs is None:
             continue
-        cmp = stats.compare(recs, base, "arm", "base")
+        cmp = stats.compare(recs, base, "arm", "base", grounded=True)
         d = cmp["grounded_score_diff_all_functions"]
         m = cmp["grounded_score"]["arm"]
         labels.append(label)

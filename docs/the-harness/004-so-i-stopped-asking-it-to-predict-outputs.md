@@ -1,6 +1,6 @@
 # So I stopped asking it to predict outputs
 
-Experiment 004 · 11 September 2026 · measured · 13 min read
+Experiment 004 · 11 September 2026 · measured · 7 min read
 
 **Summary.** If the model cannot compute expected values, let the harness compute them, in every arm, base included. Filling values by execution was worth 28 validity points on its own. A fine-tune on top of it, on the model's own pairs, was worth +0.024 with an interval that included zero. I pre-registered the bar before the run, and the run failed it.
 
@@ -66,7 +66,7 @@ It does not say a fine-tune cannot help under the harness. It says one trained o
 
 ## Threats to validity
 
-The four re-scored rows are post-hoc: I chose the metric knowing what those generations looked like. The DPO arm is the only pre-registered number in this entry. Checkpoint selection on 171 functions, single run, single seed. The oracle-tautology caveat above applies to every grounded number in the rest of this series.
+The four re-scored rows are post-hoc: I chose the metric knowing what those generations looked like. By this entry the same 315 functions had been scored against the same base arm six times, with no correction for that; each interval is honest on its own and the family of them is not. The DPO arm is the only pre-registered number in this entry. Checkpoint selection on 171 functions, single run, single seed. The oracle-tautology caveat above applies to every grounded number in the rest of this series.
 
 The `mlx-lm-lora` DPO loss does not mask the shared prompt in its log-probabilities. I checked the algebra: under the sigmoid loss I used, the prompt terms are identical for chosen and rejected and cancel exactly, so it did not affect this result. It would under other loss types, and I would rather record it than have someone find it.
 

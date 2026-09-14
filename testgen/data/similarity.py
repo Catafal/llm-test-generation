@@ -113,11 +113,15 @@ def cosine_matrix(a: list[list[float]], b: list[list[float]]) -> list[list[float
     ]
 
 
-def jina_embedder(model_name: str = "jinaai/jina-embeddings-v2-base-code") -> Embedder:
-    """Real embedder; imports torch lazily so the rest of the package stays light."""
+def jina_embedder(
+    model_name: str = "jinaai/jina-embeddings-v2-base-code", device: str | None = None
+) -> Embedder:
+    """Real embedder; imports torch lazily so the rest of the package stays light.
+
+    ``device="cpu"`` keeps torch off the Metal GPU while mlx is generating."""
     from sentence_transformers import SentenceTransformer
 
-    model = SentenceTransformer(model_name, trust_remote_code=True)
+    model = SentenceTransformer(model_name, trust_remote_code=True, device=device)
 
     def embed(texts: Sequence[str]) -> list[list[float]]:
         return model.encode(list(texts), normalize_embeddings=True, batch_size=32).tolist()

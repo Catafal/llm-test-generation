@@ -1,6 +1,6 @@
 # I gave the model the right answers and it got worse
 
-Experiment 002 · 8 September 2026 · measured · 16 min read
+Experiment 002 · 8 September 2026 · measured · 9 min read
 
 **Summary.** The first fine-tune trained on the model's own suites with the wrong expected values corrected by execution. Validity fell 4 points against zero-shot prompting, on an interval that includes zero. The mechanism was in the data: I had taught the model to state exact values with confidence, and at inference it still could not compute them.
 

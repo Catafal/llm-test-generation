@@ -1,8 +1,8 @@
 # Preferences, traces, and the one skill I could not install
 
-Experiment 003 · 10 September 2026 · measured · 15 min read
+Experiment 003 · 10 September 2026 · measured · 8 min read
 
-**Summary.** Two more signals aimed at the same bottleneck. Preference pairs built from the model's own passing and failing suites: a clean null, and it undid the harm of entry 002. Execution traces rendered above each assert as a scratchpad: a validity gain that turned out to be brevity, and derivations that were fluent and invented. Three signals, two bases, and the per-assert accuracy never moved.
+**Summary.** Two more signals aimed at the same bottleneck. Preference pairs built from the model's own passing and failing suites: no measurable change, with an interval that would have missed a gain below five points, and the assertion mix returned to the base's. Execution traces rendered above each assert as a scratchpad: a validity gain that turned out to be brevity, and derivations that were fluent and invented. Three signals, two bases, and the per-assert accuracy never moved.
 
 After 002 I wrote down what I believed. Any method that leaves the model guessing expected values in a single forward pass is capped near the base rate. So the lever had to do one of two things: teach the model what not to assert, which needs a signal with negatives in it, or give it a way to compute at inference, which means reasoning tokens. I ran one of each.
 
@@ -21,7 +21,7 @@ Supervised fine-tuning on good examples never contains a wrong answer. The data 
 
 Against zero-shot: validity +0.003, [−0.048, +0.051], p = 1.00. Against the SFT: +0.044, p = 0.13. The assertion mix went back to the base's, literal-equality share 0.721, and the false-failure count went back to exactly the base's 176. Brevity stayed.
 
-So DPO removed what SFT had done and added nothing. The most informative number is one from training: accuracy on the 27 held-out pairs stayed at chance, between 0.44 and 0.61, while training accuracy reached 0.9. The model could memorise which of two suites was right. It could not tell, for a function it had not seen, which of two literals was the right one, because telling requires the computation it does not do.
+So DPO returned the assertion mix and the false-failure count to the base's and added nothing the interval could resolve. The most informative number is one from training: accuracy on the 27 held-out pairs stayed at chance, between 0.44 and 0.61, while training accuracy reached 0.9. The model could memorise which of two suites was right. It could not tell, for a function it had not seen, which of two literals was the right one, because telling requires the computation it does not do.
 
 ## Iteration 3: give it somewhere to compute
 

@@ -133,12 +133,11 @@ def _page(name: str, h2: str, sub: str, src: str, data, script: str, vh: int = 3
 
 def arm_stats() -> list[dict]:
     """Per arm vs base zero-shot: grounded score + CI, validities, discordant counts, styles."""
-    stats.GROUNDED = True
     base = _records(BASE)
     out = []
     for label, run, hero in ARMS:
         recs = _records(run)
-        cmp = stats.compare(recs, base, "arm", "base")
+        cmp = stats.compare(recs, base, "arm", "base", grounded=True)
         d = cmp["grounded_score_diff_all_functions"]
         g = cmp["grounded_score"]["arm"]
         unaided = sum(

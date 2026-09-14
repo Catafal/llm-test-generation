@@ -163,9 +163,15 @@ decontaminated against both splits.
   test writer the adapters are not measurably better than the base.
 - Filled asserts snapshot the reference (oracle tautology): the metric
   measures input and coverage quality, not oracle reasoning.
-- One test evaluation per adapter, checkpoint chosen on 171 dev functions;
-  the intervals are wide (half-width ≈ 0.045). The 4k and 12k results
-  are independent replications of each other, not of a third run.
+- One test evaluation per adapter, checkpoint chosen on 171 dev functions
+  from a curve as wide as the effect (4k: +0.009 over the base on dev,
+  +0.059 on test); the intervals are wide (half-width ≈ 0.045). The 4k and
+  12k results share the test split, so they replicate the data cut and the
+  training, not the evaluation. The split has been scored against the same
+  base arm eight times across the series with no multiplicity correction.
+- The style-matched prompt control (base prompted for short exact-value
+  suites, D035) is the comparator that separates "fine-tuning" from
+  "formatting"; its row is added when the run completes.
 - No dose-response from 4k to 12k; saturation and the lower selection
   quality of the larger cut are confounded.
 - Held-out functions are pure and self-contained by construction; nothing

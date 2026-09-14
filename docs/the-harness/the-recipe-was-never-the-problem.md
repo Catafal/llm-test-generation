@@ -1,6 +1,6 @@
 # The recipe was never the problem
 
-Note · 14 September 2026 · reasoned, not measured · 8 min read
+Note · 14 September 2026 · reasoned, not measured · 5 min read
 
 **Summary.** Five iterations comparing prompting and fine-tuning on one task. I spent three of them trying to install a capability in a 4B model with a few hundred of its own examples, and one changing the task so the capability was not needed. The gain came from the data source, the harness did more than any fine-tune, and pre-registration saved me more often than it vindicated me.
 
@@ -17,7 +17,7 @@ The project started as a work sample. The question a hiring manager would ask, I
 | 5a | SFT, harness fills values | 4,000 | GPT-4o via KodCode | grounded score +0.059 [+0.013, +0.105] | yes |
 | 5b | same | 12,000 | same | grounded score +0.062 [+0.015, +0.106] | yes, and +0.003 over 5a |
 
-Rows 1 to 4 are one experiment repeated with a different signal each time, and the per-assert accuracy of expected values, the thing every one of them was aimed at, never moved. Row 5 is a different experiment: same recipe, different author of the data.
+Rows 1 to 4 are one experiment repeated with a different signal each time. None of the four intervals excludes zero and none could have caught an effect under about five points, so they are unresolved rather than null; what closed each one was the mechanism measured on the generations, and the per-assert accuracy of expected values, the thing every one of them was aimed at, never moved. Row 5 is a different experiment: same recipe, different author of the data.
 
 ![Where the fine-tune finally moved](../charts/results.png)
 

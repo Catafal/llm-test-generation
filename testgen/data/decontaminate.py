@@ -179,6 +179,12 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--floor", default="2026-06-01")
     ap.add_argument("--dir", default=str(HELDOUT), help="pool directory holding candidates.jsonl")
     ap.add_argument("--against", choices=["mbpp", "heldout"], default="mbpp")
+    ap.add_argument(
+        "--no-families",
+        action="store_true",
+        help="skip the O(n^2) self-dedup; only flag candidates against the reference (D035)",
+    )
+    ap.add_argument("--device", default=None, help="torch device for the embedder, e.g. cpu")
     args = ap.parse_args(argv)
     out_dir = Path(args.dir).resolve()
 
@@ -200,7 +206,9 @@ def main(argv: list[str]) -> int:
     embed = (
         None
         if args.no_embed
-        else __import__("testgen.data.similarity", fromlist=["jina_embedder"]).jina_embedder()
+        else __import__("testgen.data.similarity", fromlist=["jina_embedder"]).jina_embedder(
+            device=args.device
+        )
     )
     print(
         f"{len(held)} candidates vs {len(train)} {args.against} functions; "
@@ -211,7 +219,10 @@ def main(argv: list[str]) -> int:
     clean = [
         h for h in held if not any(not r.startswith("REVIEW") for r in flagged.get(h["id"], []))
     ]
-    families, merges = _families(clean, embed)
+    if args.no_families:  # reference check only: families come from the caller's own grouping
+        families, merges = {h["id"]: h.get("family", h["id"]) for h in clean}, []
+    else:
+        families, merges = _families(clean, embed)
     kept, seen_dup_cluster = [], set()
     dup_cluster = {}  # id -> cluster root among *near-duplicate* merges only (not repo grouping)
     dup_uf = UnionFind([h["id"] for h in clean])

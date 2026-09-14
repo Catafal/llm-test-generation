@@ -1,6 +1,6 @@
 # Four thousand examples from a stronger teacher
 
-Experiment 005 · 14 September 2026 · measured · 17 min read
+Experiment 005 · 14 September 2026 · measured · 10 min read
 
 **Summary.** Three research passes said the recipe was fine and the data was the problem: every working small-model recipe uses a stronger teacher at a scale I had refused on purpose. Four thousand execution-verified examples from a public GPT-4o dataset, curated through my own harness, cleared the pre-registered bar. Twelve thousand replicated the gain and added nothing to it.
 
@@ -67,7 +67,7 @@ Same pipeline, 12,000 more executed rows, a 12,000-example cut whose mean mutati
 |---|---|---|---|---|
 | KodCode SFT, 12,000, checkpoint 2400 | 0.822 | 0.667 | +0.062 [+0.015, +0.106] | +0.003 [−0.027, +0.034] |
 
-The gain replicated on an independent sample, curation and training run. Three times the data added nothing measurable. Either this kind of data saturates at a few thousand examples, or the lower selection quality of the larger cut offsets its size; the two are confounded in this design and I have not separated them. The 12,000 model does lean less on the harness, 520 literals rewritten against 798, and its unaided validity is 0.467, still unresolved against the base.
+The gain repeated on an independent curation sample and training run, scored on the same 315 test functions. That replicates the data cut and the training, not the evaluation: the test split is shared, so the two intervals are not independent draws. Three times the data added nothing measurable. Either this kind of data saturates at a few thousand examples, or the lower selection quality of the larger cut offsets its size; the two are confounded in this design and I have not separated them. The 12,000 model does lean less on the harness, 520 literals rewritten against 798, and its unaided validity is 0.467, still unresolved against the base.
 
 ![Dev curves picked the checkpoint; the test split judged it](../charts/devcurves.png)
 
@@ -91,7 +91,7 @@ Not that stages two and three were unnecessary in principle. They were unnecessa
 
 ## Threats to validity
 
-Two runs, one checkpoint selection each on 171 functions, one test evaluation each. The intervals are wide; the true effect could be half or twice the point estimate. Selection on mutation score favours simpler functions and the training distribution is synthetic GPT-4o style, which is not the distribution of the held-out pool. Layer-2 embedding decontamination was skipped for this set, on the argument that 2025 synthetic data cannot contain post-2026 GitHub; the n-gram and AST layers ran. The adapters are non-commercial. The gain exists only under the grounded harness.
+Two runs, one checkpoint selection each on 171 functions, one test evaluation each. The intervals are wide; the true effect could be half or twice the point estimate. The chosen 4,000 checkpoint led the base by 0.009 on dev and by 0.059 on test, and two of its four checkpoints sat below the base on dev, so checkpoint selection is drawing from a curve as wide as the effect. Across the whole series the same 315 functions have been scored against the same base arm eight times with no multiplicity correction; under a Bonferroni-style correction the 4,000 lower bound would not clear zero and the 12,000 one barely would. Selection on mutation score favours simpler functions and the training distribution is synthetic GPT-4o style, which is not the distribution of the held-out pool. Layer-2 embedding decontamination was skipped for this set, on the argument that 2025 synthetic data cannot contain post-2026 GitHub; the n-gram and AST layers ran. The adapters are non-commercial. The gain exists only under the grounded harness.
 
 The 12,000 point confounds scale with selection quality, as above.
 
