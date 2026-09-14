@@ -25,6 +25,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from config import MAX_TESTS_PER_SUITE, ROOT
+from testgen.generate.prompts import TEACHER_MAX_TESTS, TEACHER_SHOTS
 from testgen.harness import manifest
 from testgen.harness.runner import run_many, run_suite
 from testgen.harness.score import SuiteScore, aggregate, score_suite
@@ -144,12 +145,10 @@ def run_condition(
         if tag == "bestof":
             gens = [None] * len(chunk)
         else:
-            style = "shape" if tag == "shape" else "default"
+            style = tag if tag in ("shape", "teacher") else "default"
+            max_tests = TEACHER_MAX_TESTS if tag == "teacher" else MAX_TESTS_PER_SUITE
             gens = backend.generate_many(
-                [
-                    build_messages(r["source"], MAX_TESTS_PER_SUITE, shots, style=style)
-                    for r in chunk
-                ]
+                [build_messages(r["source"], max_tests, shots, style=style) for r in chunk]
             )
         for row, g in zip(chunk, gens, strict=True):
             rec = {"id": row["id"], "condition": tag, "model": backend.model_id}
@@ -207,7 +206,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument(
         "--conditions",
         default="zero,few",
-        help="zero, few, bestof (ceiling row), shape (D028 oracle-shape prompt)",
+        help="zero, few, bestof (ceiling row), shape (D028), teacher (D035 style-matched control)",
     )
     ap.add_argument("--limit", type=int, default=0, help="first N functions of the pool only")
     ap.add_argument("--adapter", default="", help="LoRA adapter dir applied to every model")
@@ -241,7 +240,7 @@ def main(argv: list[str]) -> int:
         backend = Backend(MODELS[key], adapter_path=args.adapter or None, thinking=args.thinking)
         print(f"model {MODELS[key]}", flush=True)
         for cond in args.conditions.split(","):
-            fs = shots if cond == "few" else None
+            fs = shots if cond == "few" else TEACHER_SHOTS if cond == "teacher" else None
             rows = (
                 pool
                 if not (cond == "few" and args.pool == "pilot")

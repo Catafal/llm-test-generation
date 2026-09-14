@@ -55,8 +55,8 @@ pairs:            ## D026: preference pairs from data/train/sft/scored.jsonl -> 
 dpo:              ## D026: DPO with mlx-lm-lora -> models/adapters/$(RUN); ITERS= (one epoch = pairs)
 	caffeinate -i env HF_HUB_OFFLINE=1 uv run --group models python -m testgen.train.dpo -c configs/dpo-4b.yaml --adapter-path models/adapters/$(or $(RUN),dpo-4b) $(if $(ITERS),--iters $(ITERS),) $(if $(DATA),--data $(DATA),)
 
-baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b [LIMIT= ADAPTER= TAG= CONDITIONS=]
-	caffeinate -i uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),) $(if $(THINKING),--thinking,)
+baselines:        ## zero-shot + few-shot for all candidate models; POOL=pilot|test|dev MODELS=9b,4b,coder7b [LIMIT= ADAPTER= TAG= CONDITIONS= GROUNDED=1]
+	caffeinate -i uv run --group models python -m testgen.baselines --pool $(or $(POOL),pilot) --models $(or $(MODELS),9b,4b,coder7b) $(if $(LIMIT),--limit $(LIMIT),) $(if $(ADAPTER),--adapter $(ADAPTER),) $(if $(TAG),--tag $(TAG),) $(if $(CONDITIONS),--conditions $(CONDITIONS),) $(if $(THINKING),--thinking,) $(if $(GROUNDED),--grounded,)
 
 harvest:          ## harvest post-cutoff pure functions from GitHub into data/heldout/candidates.jsonl
 	uv run python -m testgen.data.harvest --repos $(or $(REPOS),50)

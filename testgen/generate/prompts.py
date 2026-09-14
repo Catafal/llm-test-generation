@@ -38,7 +38,45 @@ SYSTEM_SHAPE = SYSTEM.replace(
     "empty results, small integers, short literal strings). Never assert a value "
     "you would have to work out.",
 )
-STYLES = {"default": SYSTEM, "shape": SYSTEM_SHAPE}
+# D035 control: the teacher's style, prompted. Short suites of exact-value
+# asserts, which is what the KodCode adapters learned to write and what the
+# grounded harness can repair. If prompting for the style recovers the
+# adapters' gain, the fine-tune bought formatting.
+SYSTEM_TEACHER = SYSTEM.replace(
+    "- Aim to expose bugs: cover boundaries, empty and degenerate inputs, both sides of "
+    "every condition, and error paths. Assert exact values, not just truthiness.\n",
+    "- One short test per behaviour: call the function once and assert its exact return "
+    "value with `==`. Cover the base case, a typical case, and the boundaries. "
+    "No comments, no docstrings, no helper code.\n",
+)
+STYLES = {"default": SYSTEM, "shape": SYSTEM_SHAPE, "teacher": SYSTEM_TEACHER}
+TEACHER_MAX_TESTS = (
+    5  # the adapters write 4.7-4.9 tests per suite; the budget cap of 8 still applies
+)
+
+# Two KodCode training examples (data/train/ext/train.jsonl), the shortest with
+# 4-5 tests, used as few-shot exemplars of the teacher's style.
+TEACHER_SHOTS = [
+    (
+        'def factorial(n):\n    """\n    Returns the factorial of n using recursion.\n    """\n'
+        "    if n == 0:\n        return 1\n    else:\n        return n * factorial(n - 1)\n",
+        "from solution import factorial\n\ndef test_factorial_base_case():\n"
+        "    assert factorial(0) == 1\n\ndef test_factorial_of_one():\n"
+        "    assert factorial(1) == 1\n\ndef test_factorial_of_positive_number():\n"
+        "    assert factorial(5) == 120\n\ndef test_factorial_of_another_positive_number():\n"
+        "    assert factorial(3) == 6\n",
+    ),
+    (
+        'def and_gate(input1, input2):\n    """\n    Simulates an AND gate.\n'
+        '    Returns 1 if both inputs are 1, otherwise returns 0.\n    """\n'
+        "    return 1 if input1 == 1 and input2 == 1 else 0\n",
+        "from solution import and_gate\n\ndef test_and_gate_both_inputs_high():\n"
+        "    assert and_gate(1, 1) == 1\n\ndef test_and_gate_first_input_low():\n"
+        "    assert and_gate(0, 1) == 0\n\ndef test_and_gate_second_input_low():\n"
+        "    assert and_gate(1, 0) == 0\n\ndef test_and_gate_both_inputs_low():\n"
+        "    assert and_gate(0, 0) == 0\n",
+    ),
+]
 
 USER = "Write the pytest test module for this function.\n\n```python\n{source}\n```"
 
