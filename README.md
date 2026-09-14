@@ -5,15 +5,18 @@ the same model prompted, on 315 real functions written after its training
 cutoff? Two weeks, one Mac, five fine-tuning iterations, every decision logged.
 
 **Result.** Under a harness that fills expected values by executing the
-function, an adapter trained on 4,000 execution-verified examples from a
-public GPT-4o dataset catches **+0.059 more of the hidden mutants per function**
-than the base prompted (paired 95% CI +0.013 to +0.105, n = 315,
-pre-registered), and a second run at 12,000 examples lands at +0.062. Four
-earlier iterations on the model's own outputs did not move the metric, and
-each one was measured down to its mechanism. The harness itself is the
-larger effect: filling values by execution lifts validity from 0.44 to 0.72
-before any fine-tune. The adapters' gain is style, not execution prediction,
-and a style-matched prompt control is running to price that.
+function, adapters trained on 4,000 and 12,000 execution-verified examples
+from a public GPT-4o dataset catch **+0.059 and +0.062 more of the hidden
+mutants per function** than the base prompted zero-shot (paired 95% CI
++0.013 to +0.105, n = 315, pre-registered). Then the control the reviewers
+asked for: **the base prompted for the same style, short suites of
+exact-value asserts, scores +0.076 with no training**, and both adapters sit
+below it (−0.014 and −0.017, intervals including zero). The fine-tune bought
+the style; asking for the style is worth more. Four earlier iterations on
+the model's own outputs did not move the metric, each measured down to its
+mechanism, and the harness itself is the largest effect in the repo:
+filling values by execution lifts validity from 0.44 to 0.72 before any
+prompt or weight changes.
 
 | arm (Qwen3.5-4B, test n = 315, grounded harness) | grounded validity | mutation score on grounded-valid | grounded score | Δ vs base zero-shot, 95% CI |
 |---|---|---|---|---|
@@ -21,10 +24,15 @@ and a style-matched prompt control is running to price that.
 | base few-shot | 0.702 | 0.854 | 0.599 | −0.005 [−0.051, +0.041] |
 | SFT, 388 self-generated | 0.743 | 0.846 | 0.629 | +0.024 [−0.021, +0.070] |
 | DPO, 645 own grounded pairs | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
-| **SFT, 4,000 KodCode** | 0.803 | 0.826 | **0.664** | **+0.059 [+0.013, +0.105]** |
-| **SFT, 12,000 KodCode** | 0.822 | 0.811 | **0.667** | **+0.062 [+0.015, +0.106]** |
+| SFT, 4,000 KodCode | 0.803 | 0.826 | 0.664 | +0.059 [+0.013, +0.105] |
+| SFT, 12,000 KodCode | 0.822 | 0.811 | 0.667 | +0.062 [+0.015, +0.106] |
+| **base, prompted for the style (control)** | 0.860 | 0.791 | **0.680** | **+0.076 [+0.034, +0.118]** |
 
-![Where the fine-tune finally moved](docs/charts/results.png)
+Adapters against the control: 12k −0.014 [−0.051, +0.022], 4k −0.017
+[−0.057, +0.022]. The control also lifts unaided validity, 0.571 vs 0.438,
+which no fine-tune did.
+
+![The prompt for the teacher's style beat the fine-tune](docs/charts/results.png)
 
 ## How it works
 

@@ -280,6 +280,20 @@ suite at 89% literal-equality asserts. Either the effect saturates at a
 few thousand examples of this kind, or the lower selection quality of the
 larger cut offsets its size; the two are confounded here.
 
+**Control (2026-09-14, D035/D036, after peer review).** Base Qwen3.5-4B,
+no training, prompted for the teacher's style (`SYSTEM_TEACHER`: one short
+test per behaviour, exact return value with `==`, at most 5 tests; two
+KodCode examples as exemplars), grounded harness, same 315 functions:
+grounded validity 0.860, mutation score on grounded-valid 0.791, grounded
+score **0.680**, +0.076 [+0.034, +0.118] vs base zero-shot (56/11
+discordant); unaided validity 0.571, +0.133 [+0.073, +0.190]. Adapters vs
+the control: 12k −0.014 [−0.051, +0.022], 4k −0.017 [−0.057, +0.022].
+4.65 tests per suite, 82% literal asserts, 247 literals filled. Run
+`baselines-test-control-teacher-20260914T143758Z`. **Reading, per the
+rule fixed before the run:** the style is worth the six points and
+prompting for it gets all of them; the adapters match the prompt and do
+not beat it.
+
 ## What five iterations settle
 
 Three signals (execution-corrected literals, the model's own pass/fail
@@ -288,10 +302,12 @@ per-assert value accuracy never moved. A fourth iteration removed values
 from the task and trained on grounded preferences; the gain is +0.024,
 unresolved at n=315. A fifth kept the harness and replaced the data with
 4,000 execution-verified frontier-teacher examples: +0.059 [+0.013,
-+0.105], resolved, and replicated at 12,000 examples (+0.062 [+0.015,
-+0.106]) with no further gain from the extra data. Data source was the
-lever; scale beyond a few thousand was not; the recipe was never the
-problem. At a few hundred examples with LoRA,
++0.105], resolved, and repeated at 12,000 examples (+0.062 [+0.015,
++0.106]) with no further gain from the extra data. The control run after
+peer review then showed the base prompted for the same style at +0.076,
+above both adapters. What the fine-tune learned was a style, and the style
+can be asked for. The harness is the lever; the recipe was never the
+problem, and neither, in the end, was the data. At a few hundred examples with LoRA,
 a 4B model does not acquire execution prediction; the one published success
 at 3B used ~80M traces. The bottleneck is a base-model capability, not a
 recipe choice within this budget. The recipe, harness, decontaminated pools

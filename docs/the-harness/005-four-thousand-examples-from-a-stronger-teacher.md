@@ -2,7 +2,7 @@
 
 Experiment 005 · 14 September 2026 · measured · 10 min read
 
-**Summary.** Three research passes said the recipe was fine and the data was the problem: every working small-model recipe uses a stronger teacher at a scale I had refused on purpose. Four thousand execution-verified examples from a public GPT-4o dataset, curated through my own harness, cleared the pre-registered bar. Twelve thousand replicated the gain and added nothing to it.
+**Summary.** Three research passes said the recipe was fine and the data was the problem: every working small-model recipe uses a stronger teacher at a scale I had refused on purpose. Four thousand execution-verified examples from a public GPT-4o dataset, curated through my own harness, cleared the pre-registered bar. Twelve thousand repeated the gain and added nothing to it. Then a control that three reviewers asked for, the base prompted for the teacher's style with no training, scored higher than both adapters.
 
 After 004 I asked myself a question I should have asked after 002: is this a ceiling of the model, or something I am doing wrong? I do not trust my own answer to that, so I had three research passes done, with the instruction to be sceptical and to cite.
 
@@ -71,6 +71,21 @@ The gain repeated on an independent curation sample and training run, scored on 
 
 ![Dev curves picked the checkpoint; the test split judged it](../charts/devcurves.png)
 
+## The control, and what it did to the headline
+
+Three reviewers read the draft of this entry and asked the same question in three voices: the adapters write short suites of exact-value asserts, that is exactly what the harness repairs, and you never prompted the base for that style. So I registered the control before running it, with its reading rule: the base model, no training, a system prompt asking for one short test per behaviour with the exact return value and at most five tests, and two KodCode training examples as exemplars. If its gain over zero-shot cleared zero and the adapters' gain over it did not, the headline would be that the style is worth the points and prompting gets them.
+
+| arm | unaided validity | grounded validity | mutation score on grounded-valid | grounded score | vs base zero-shot, 95% CI |
+|---|---|---|---|---|---|
+| base, zero-shot | 0.438 | 0.717 | 0.842 | 0.604 | |
+| KodCode SFT, 4,000 | 0.460 | 0.803 | 0.826 | 0.664 | +0.059 [+0.013, +0.105] |
+| KodCode SFT, 12,000 | 0.467 | 0.822 | 0.811 | 0.667 | +0.062 [+0.015, +0.106] |
+| base, prompted for the style | 0.571 | 0.860 | 0.791 | 0.680 | +0.076 [+0.034, +0.118] |
+
+The control clears zero by a wider margin than either adapter. The 12,000 adapter against the control: −0.014, [−0.051, +0.022]. The 4,000 adapter: −0.017, [−0.057, +0.022], and its grounded validity is lower by 0.057 with p = 0.02. The control also moved the number no fine-tune had moved: unaided validity 0.571 against 0.438, +0.133 with an interval from +0.073 to +0.190. It writes 4.65 tests per suite, 82 percent exact-value asserts, and the harness had to rewrite 247 literals for it against 520 for the adapter, because a suite with fewer asserts has fewer to get wrong.
+
+So the reading rule fires the way the reviewers predicted. The six points were the style. Asking for the style gets all of them and more, and the two adapters match the prompt without beating it. That is the headline of this entry now, and the one I had written before the control was wrong.
+
 ## What the model learned
 
 Style. The adapters write 4.7 to 4.9 tests per suite where the base writes 7.7, and 85 to 89 percent of their asserts are exact-value literals where the base's are 72 percent. Fewer membership asserts, fewer truncated suites. Under a harness that fills literals, that is the optimal style, and the harness rewrote about twice as many values per suite as it did for the base. What remained invalid after filling fell from 89 suites to 62 and 56.
@@ -79,7 +94,7 @@ Unaided validity did not resolve. The model did not learn to predict outputs. It
 
 *Correction, 14 September 2026.* The first version of this table listed 0.868 and 0.843 in the mutation-score column for the two adapters. Those were the mutation scores of the suites valid as written, copied from the wrong field of the run summary. The grounded column now shows the values on grounded-valid suites, which the grounded score divides into exactly. Two reviewers caught it by checking that grounded validity times mutation score equals the grounded score, which it now does on every row.
 
-I want to say plainly what this is and is not. It is a replicated, pre-registered, six-point gain in mutants caught per function, under the harness, over the same model prompted. It is not evidence that a 4B model learned execution prediction, and the blog post that claimed it was would be wrong.
+I want to say plainly what this is and is not. It is a repeated, pre-registered, six-point gain in mutants caught per function, under the harness, over the same model prompted zero-shot, and it is matched by a system prompt. It is not evidence that a 4B model learned execution prediction, and it is not evidence that fine-tuning was needed.
 
 ![What the fine-tune learned: the teacher's style](../charts/styles.png)
 
@@ -108,8 +123,8 @@ The adapters are on the Hub under `jorcagra/qwen3.5-4b-testgen-lora-ext12k` and 
 
 ## What I take from this
 
-Five iterations. The recipe was never the problem: the audit found nothing broken, and the run that finally moved used the same adapter, the same layers, the same learning rate as the first one that did not. What changed was who wrote the training examples.
+Five iterations and a control. The recipe was never the problem: the audit found nothing broken, and the run that moved used the same adapter, the same layers, the same learning rate as the first one that did not. What changed was who wrote the training examples, and what the examples taught was a style that a system prompt teaches for free.
 
-I refused a teacher in entry 002 because I wanted the interesting story. The interesting story was that a 4B model cannot lift itself by its own outputs on a task that needs a skill it lacks, and it took four measured nulls to be able to say that with numbers. The boring story, distillation works, is also true, and it is six points wide.
+I refused a teacher in entry 002 because I wanted the interesting story. The interesting story turned out to be smaller and sharper than either version I had in mind: a 4B model cannot lift itself by its own outputs on a task that needs a skill it lacks; it can be taught a style by four thousand examples; and it can be asked for the same style in a paragraph. The control that showed the last part was the cheapest run in the series, and I ran it last because three strangers told me to.
 
 ← [The Harness](index.md)

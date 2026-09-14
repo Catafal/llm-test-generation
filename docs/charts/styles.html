@@ -40,7 +40,7 @@ const rnd=(i,k)=>Math.abs(((i*73856093)^(k*19349663))%1000)/1000;
 const obsReveal=(id,fn)=>{const n=document.getElementById(id);const go=()=>{n.innerHTML='';fn(n)};
   const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){go();io.disconnect()}},{threshold:.3});
   io.observe(n);n.style.cursor='pointer';n.addEventListener('click',go)};
-const D=[["ZERO-SHOT", [36, 10, 3], [72, 21, 7], false], ["DPO \u00b7 645 SELF", [37, 10, 4], [74, 19, 7], false], ["SFT \u00b7 4K", [43, 3, 4], [85, 6, 9], false], ["SFT \u00b7 12K", [44, 2, 4], [88, 4, 8], true]];
+const D=[["ZERO-SHOT", [36, 10, 3], [72, 21, 7], false], ["SFT \u00b7 4K", [43, 3, 4], [85, 6, 9], false], ["SFT \u00b7 12K", [44, 2, 4], [88, 4, 8], false], ["\u00b7 STYLE PROMPT", [41, 7, 2], [82, 14, 5], true]];
 
 const SEG=['EXACT-VALUE LITERAL','MEMBERSHIP','OTHER'];
 obsReveal('ch',s=>{

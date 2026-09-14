@@ -13,7 +13,7 @@ real-world functions with paired statistics, pre-registered.
 | Training data | KodCode-V1 (GPT-4o solutions and tests), curated through this repo's harness |
 | Licence | Adapters: **CC BY-NC 4.0** (inherited from KodCode). Code: see repo LICENSE. Non-commercial. |
 | Hardware | One Mac M4 Pro 48 GB, mlx-lm 0.31.3; ~9.5 h (4k) and ~30 h (12k) training |
-| Result | Grounded score +0.059 [+0.013, +0.105] (4k) and +0.062 [+0.015, +0.106] (12k) vs the base prompted, n = 315, paired bootstrap |
+| Result | Grounded score +0.059 [+0.013, +0.105] (4k) and +0.062 [+0.015, +0.106] (12k) vs the base prompted zero-shot, n = 315, paired bootstrap. **Against the base prompted for the same style (control, D036) the adapters are −0.017 and −0.014, intervals including zero: the prompt gets the gain without training.** |
 
 ## Intended use
 
@@ -74,6 +74,7 @@ score difference of about ±0.045.
 | it. 4 DPO, 645 own grounded pairs | 0.413 | 0.740 | 0.850 | 0.629 | +0.024 [−0.013, +0.064] |
 | **it. 5a SFT, 4,000 KodCode (`lora-4b-ext`)** | 0.460 | 0.803 | 0.826 | **0.664** | **+0.059 [+0.013, +0.105]** |
 | **it. 5b SFT, 12,000 KodCode (`lora-4b-ext12k`)** | 0.467 | 0.822 | 0.811 | **0.667** | **+0.062 [+0.015, +0.106]** |
+| **control: base, teacher-style prompt (D036)** | 0.571 | 0.860 | 0.791 | **0.680** | **+0.076 [+0.034, +0.118]** |
 
 Iteration 3 (execution-trace targets) ran on the dense Qwen3-4B-2507 and is
 in `docs/results/weekend-2.md`: validity +0.054 (p = 0.11) from brevity,
@@ -91,13 +92,22 @@ score on both-valid functions −0.023 [−0.048, +0.001] and −0.024 [−0.049
 `arith` mutation category (never used in curation): 258 and 259 kills vs
 206, no operator drift. 12k vs 4k: +0.003 [−0.027, +0.034].
 
+Adapters vs the control: 12k −0.014 [−0.051, +0.022] (grounded validity
+−0.038, p = 0.12); 4k −0.017 [−0.057, +0.022] (grounded validity −0.057,
+p = 0.02). The control's unaided validity, 0.571, is +0.133 [+0.073, +0.190]
+over zero-shot; no fine-tune moved unaided validity. The control is the base
+model with `SYSTEM_TEACHER` (one short test per behaviour, exact return
+value with `==`, at most 5 tests) and two KodCode training examples as
+exemplars, run once, pre-registered with its reading rule.
+
 Dev-171 curves (checkpoint selection, grounded score): 4k 0.601 / 0.589 /
 0.623 / **0.630** at 800/1600/2400/3200; 12k **0.646** / 0.596 / 0.633 /
 0.596 at 2400/4800/7200/9600; base 0.621.
 
 ## What the adapters learned (mechanism)
 
-Style transfer from the teacher data, not execution prediction. Compared
+Style transfer from the teacher data, not execution prediction, and the
+style can be prompted (D036). Compared
 with the base, the adapters write 4.7–4.9 tests per suite (base 7.7), 85–89%
 literal-equality asserts (base 72%), fewer membership asserts, fewer
 truncated suites. Shorter suites kill fewer mutants: 0.826 and 0.811 on
@@ -169,9 +179,10 @@ decontaminated against both splits.
   12k results share the test split, so they replicate the data cut and the
   training, not the evaluation. The split has been scored against the same
   base arm eight times across the series with no multiplicity correction.
-- The style-matched prompt control (base prompted for short exact-value
-  suites, D035) is the comparator that separates "fine-tuning" from
-  "formatting"; its row is added when the run completes.
+- The style-matched prompt control separates "fine-tuning" from
+  "formatting", and it says formatting: the adapters do not beat the base
+  prompted for their own style. Use these adapters only if you need the
+  style without a system prompt; otherwise use the prompt.
 - No dose-response from 4k to 12k; saturation and the lower selection
   quality of the larger cut are confounded.
 - Held-out functions are pure and self-contained by construction; nothing

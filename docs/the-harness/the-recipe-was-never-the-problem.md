@@ -2,7 +2,7 @@
 
 Note · 14 September 2026 · reasoned, not measured · 5 min read
 
-**Summary.** Five iterations comparing prompting and fine-tuning on one task. I spent three of them trying to install a capability in a 4B model with a few hundred of its own examples, and one changing the task so the capability was not needed. The gain came from the data source, the harness did more than any fine-tune, and pre-registration saved me more often than it vindicated me.
+**Summary.** Five iterations comparing prompting and fine-tuning on one task. I spent three of them trying to install a capability in a 4B model with a few hundred of its own examples, and one changing the task so the capability was not needed. The gain came from a style, which a prompt delivers without training; the harness did more than any fine-tune; and pre-registration saved me more often than it vindicated me.
 
 The project started as a work sample. The question a hiring manager would ask, I thought, was "can you fine-tune a small model and prove it got better?" The honest answer, after two weeks, is yes, and the proof took four failures to construct, and the failures are the part I would show first.
 
@@ -16,8 +16,9 @@ The project started as a work sample. The question a hiring manager would ask, I
 | 4 | DPO on own grounded pairs, harness fills values | 645 | own | grounded score +0.024 [−0.013, +0.064] | no |
 | 5a | SFT, harness fills values | 4,000 | GPT-4o via KodCode | grounded score +0.059 [+0.013, +0.105] | yes |
 | 5b | same | 12,000 | same | grounded score +0.062 [+0.015, +0.106] | yes, and +0.003 over 5a |
+| control | no training, base prompted for the teacher's style | 0 | a system prompt | grounded score +0.076 [+0.034, +0.118]; adapters −0.014 / −0.017 vs it | yes |
 
-Rows 1 to 4 are one experiment repeated with a different signal each time. None of the four intervals excludes zero and none could have caught an effect under about five points, so they are unresolved rather than null; what closed each one was the mechanism measured on the generations, and the per-assert accuracy of expected values, the thing every one of them was aimed at, never moved. Row 5 is a different experiment: same recipe, different author of the data.
+Rows 1 to 4 are one experiment repeated with a different signal each time. None of the four intervals excludes zero and none could have caught an effect under about five points, so they are unresolved rather than null; what closed each one was the mechanism measured on the generations, and the per-assert accuracy of expected values, the thing every one of them was aimed at, never moved. Row 5 is a different experiment: same recipe, different author of the data. The control row is what row 5 was worth: the style the data taught, asked for directly, with nothing trained.
 
 ![Where the fine-tune finally moved](../charts/results.png)
 
@@ -26,6 +27,8 @@ Rows 1 to 4 are one experiment repeated with a different signal each time. None 
 **Build the judge before the student, and let the judge have a probe.** The harness, the post-cutoff pool and the paired statistics cost a weekend and they are the reason every null in the table is a result rather than a shrug. The held-out mutation category cost nothing and gave me one sentence, "no operator drift", that I could say five times with a number behind it.
 
 **Read the generations.** Every mechanism in this series came from reading what the model wrote, not from the aggregate. The literal-assert share in 002, the chance-level held-out pair accuracy in 003, the per-test false-failure rate with and without a derivation in 003, the counts of what the harness had to rewrite in 004 and 005. An aggregate null tells you to stop. A mechanism tells you what to change.
+
+**Run the control a stranger would ask for before you publish.** Three reviewers read a draft that claimed six points for a fine-tune and asked the same question: did you prompt the base for the style the fine-tune learned? I had not. One generation run later the fine-tune was matched by a paragraph of system prompt. It was the cheapest run in the series and the one that changed the headline.
 
 **When the model cannot do the thing, ask whether the thing needs doing.** The harness filling expected values by execution was worth 28 validity points, which is more than any fine-tune in the series and more than the two shipped adapters combined. It was available from the first day. I did not take it until three iterations had failed, because I had framed the task as the model's job, and the reframing was a product decision I kept treating as a training one.
 
@@ -45,7 +48,9 @@ The pre-registered bar in 004: +0.024, twice, on two arms, with a lower bound th
 
 Not that a 4B model learned to predict the outputs of code. Unaided validity moved from 0.438 to 0.467 across the whole series and never resolved. Everything the adapters gained, they gained under a harness that executes the function for them.
 
-Not that scale is the lever. Twelve thousand examples did what four thousand did.
+Not that scale is the lever. Twelve thousand examples did what four thousand did, and a prompt did what both did.
+
+Not that the adapters are useless. They match the prompt without needing it, which is a small convenience, and they are on the Hub with this row on their card.
 
 Not that the harness is a free lunch. It snapshots the reference, so a wrong function gets a suite that enshrines the wrong behaviour, and it fills only literal-equality asserts. The 28 points come with that caveat attached, and the model card says so.
 

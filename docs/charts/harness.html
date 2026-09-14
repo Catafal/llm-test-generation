@@ -24,7 +24,7 @@ svg text{font-family:'Inter',sans-serif}
 </style></head><body>
 <div class="card">
 <h2>Execution fills the values: 28 points before any fine-tune</h2>
-<div class="sub">share of suites that pass on the correct function, as written and after the harness rewrites literal expected values from execution · every arm gets the same harness</div>
+<div class="sub">share of suites that pass on the correct function, as written and after the harness rewrites literal expected values from execution · every arm gets the same harness · orange = base, style prompt</div>
 <svg id="ch" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet"></svg>
 <div class="src">DUMBBELL QUEUE · WIRE · RUNS/BASELINES-TEST-* · TESTGEN/TRAIN/ORACLE.PY</div>
 </div>
@@ -40,10 +40,10 @@ const rnd=(i,k)=>Math.abs(((i*73856093)^(k*19349663))%1000)/1000;
 const obsReveal=(id,fn)=>{const n=document.getElementById(id);const go=()=>{n.innerHTML='';fn(n)};
   const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){go();io.disconnect()}},{threshold:.3});
   io.observe(n);n.style.cursor='pointer';n.addEventListener('click',go)};
-const D=[["BASE ZERO-SHOT", 43.8, 71.7, false], ["BASE FEW-SHOT", 41.9, 70.2, false], ["SFT \u00b7 388 SELF", 39.7, 74.3, false], ["DPO \u00b7 645 SELF", 41.3, 74.0, false], ["SFT \u00b7 4K KODCODE", 46.0, 80.3, false], ["SFT \u00b7 12K KODCODE", 46.7, 82.2, true]];
+const D=[["BASE ZERO-SHOT", 43.8, 71.7, false], ["BASE FEW-SHOT", 41.9, 70.2, false], ["SFT \u00b7 388 SELF", 39.7, 74.3, false], ["DPO \u00b7 645 SELF", 41.3, 74.0, false], ["SFT \u00b7 4K KODCODE", 46.0, 80.3, false], ["SFT \u00b7 12K KODCODE", 46.7, 82.2, false], ["BASE \u00b7 STYLE PROMPT", 57.1, 86.0, true]];
 
 obsReveal('ch',s=>{
-  const y0=i=>50+i*44,X0=126,X1=372,mapX=v=>X0+(v-35)/50*(X1-X0);
+  const y0=i=>46+i*38,X0=126,X1=372,mapX=v=>X0+(v-35)/55*(X1-X0);
   D.forEach(([name,was,now,hero],i)=>{
     const y=y0(i),xa=mapX(was),xb=mapX(now),ink=hero?HERO:DATA;
     txt(s,{x:116,y:y+3,'font-size':7.5,'font-weight':700,fill:LAB,'text-anchor':'end','letter-spacing':'.06em',class:'fade',style:`animation-delay:${i*.08}s`},name);

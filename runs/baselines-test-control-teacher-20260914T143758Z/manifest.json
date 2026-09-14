@@ -1,0 +1,48 @@
+{
+ "run": "baselines-test-control-teacher-20260914T143758Z",
+ "created": "2026-09-14T14:37:58.840100+00:00",
+ "git_sha": "b15d2143c24f1b9f400364e4a2772e63965dfc5d",
+ "operators_version": "2026-09-07.2",
+ "profile": "eval-v1",
+ "budget": {
+  "max_new_tokens": 2048,
+  "max_tests_per_suite": 8,
+  "test_timeout_seconds": 10
+ },
+ "pool": "test",
+ "n_functions": 315,
+ "models": [
+  "mlx-community/Qwen3.5-4B-bf16"
+ ],
+ "conditions": [
+  "teacher"
+ ],
+ "few_shot_cases": [
+  "clamp",
+  "letter_grade"
+ ],
+ "adapter": null,
+ "thinking": false,
+ "grounded": true,
+ "results": {
+  "4b-bf16/teacher": {
+   "suites": 315,
+   "valid": 180,
+   "validity_rate": 0.5714285714285714,
+   "false_failure_suites": 134,
+   "mutants_killed": 3621,
+   "mutants_live_total": 5490,
+   "mean_mutation_score": 0.8176929734061176,
+   "mean_grounded_score": 0.6804568600002289,
+   "grounded_validity_rate": 0.8603174603174604,
+   "grounded_mean_mutation_score": 0.790936940590672,
+   "grounded_literals_replaced": 247,
+   "unparsed": 0,
+   "truncated": 2,
+   "pytest_import_added": 15,
+   "mean_completion_tokens": 261.9142857142857,
+   "mean_seconds": 4.006595653955573,
+   "mean_thinking_tokens": 0.0
+  }
+ }
+}
