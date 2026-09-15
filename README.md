@@ -120,3 +120,9 @@ docs/              series, model card, demo, charts, results, research
 
 Everything large lives inside the repo and is gitignored: `make models-rm
 ALL=1` and `make clean-harvest` remove it.
+
+## Licence
+
+Code: MIT. Held-out functions: the licence of each source repository, listed
+in `data/heldout/NOTICE.md`. KodCode-derived training sets and the two
+adapters: CC BY-NC 4.0, see `data/train/ext/NOTICE.md`.

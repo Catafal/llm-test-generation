@@ -1,4 +1,5 @@
 [project]
+license = "MIT"
 name = "llm-test-generation"
 version = "0.1.0"
 description = "Fine-tune a small model to write unit tests that expose bugs, measured by mutation score against prompting baselines."
